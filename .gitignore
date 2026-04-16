@@ -1,0 +1,9 @@
+# Datos del proyecto
+data/raw/
+data/processed/
+data/interim/
+
+# Archivos de Python
+__pycache__/
+.venv/
+.env

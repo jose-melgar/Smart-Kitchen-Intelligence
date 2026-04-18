@@ -1,13 +1,13 @@
-# Borrador del Esquema de Datos
+# Esquema de Datos Final (Star Schema)
 
-## Tabla: `dim_products` (Catálogo)
-- **PK:** `product_id` (Código de barras/ID único).
-- **Atributos:** `product_name`, `category`, `nutriscore`, `calories_100g`, `proteins_100g`, `carbs_100g`.
+## Tabla de Hechos (Fact Table)
+**`fact_inventory_events`**: Contiene los 1,000 registros de movimientos.
+- **PK:** `event_id`
+- **FK:** `product_id` (hacia el catálogo)
 
-## Tabla: `fact_inventory_events` (Interacciones)
-- **PK:** `event_id`.
-- **FK:** `product_id` (Relación con catálogo).
-- **Atributos:** `timestamp`, `action_type` (IN/OUT), `location` (Fridge/Shelf/Box), `expiry_date_observed`.
+## Tabla de Dimensiones (Dimension Table)
+**`dim_products`**: Catálogo de 50 productos con metadatos.
+- **PK:** `product_id`
 
-## Uniones (Joins) Esperadas
-El análisis principal se basará en el JOIN de `fact_inventory_events` con `dim_products` a través de `product_id` para enriquecer los movimientos de inventario con información nutricional.
+## Relación
+Relación **1:N** (Uno a Muchos). Un producto del catálogo puede aparecer en múltiples eventos de inventario. El dataset `inventory_v1.csv` representa la desnormalización de este esquema para facilitar el análisis exploratorio.

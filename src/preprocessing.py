@@ -1,36 +1,52 @@
 import pandas as pd
 import os
 
-def process_v1_dataset():
-    # 1. Cargar datos crudos
-    catalog_path = 'data/raw/catalog_raw.csv'
-    movements_path = 'data/raw/movements_raw.csv'
+def process_and_enrich_data():
+    print("🚀 Iniciando el proceso de preprocesamiento y enriquecimiento...")
+    
+    # 1. Cargar los datasets crudos
+    catalog_path = "data/raw/catalog_raw.csv"
+    movements_path = "data/raw/movements_raw.csv"
     
     if not os.path.exists(catalog_path) or not os.path.exists(movements_path):
-        print("Error: No se encuentran los archivos en data/raw/. Ejecuta ingestion y simulation primero.")
+        print("❌ Error: Faltan archivos en data/raw/. Ejecuta ingestion.py y simulation.py primero.")
         return
 
-    df_cat = pd.read_csv(catalog_path)
-    df_mov = pd.read_csv(movements_path)
-
-    # 2. Limpieza básica
-    # Convertir timestamps a objetos datetime
-    df_mov['timestamp'] = pd.to_datetime(df_mov['timestamp'])
+    catalog = pd.read_csv(catalog_path)
+    movements = pd.read_csv(movements_path)
     
-    # Manejo de nulos en fechas de vencimiento (rellenar con 'N/A' para el CSV final)
-    df_mov['expiry_date'] = df_mov['expiry_date'].fillna('N/A')
-
-    # 3. JOIN: Unir movimientos con información del catálogo
-    # Usamos un left join para mantener todos los movimientos aunque el ID no esté en el catálogo
-    inventory_v1 = pd.merge(df_mov, df_cat, on='product_id', how='left')
-
-    # 4. Guardar el dataset procesado
-    os.makedirs('data/processed', exist_ok=True)
-    output_path = 'data/processed/inventory_v1.csv'
-    inventory_v1.to_csv(output_path, index=False)
+    # 2. Unión de Datos (Inner Join)
+    # Unimos por product_id para asegurar que cada movimiento tenga su metadata nutricional
+    df_v1 = pd.merge(movements, catalog, on="product_id", how="inner")
     
-    print(f"Éxito: Processed Dataset V1 guardado en {output_path}")
-    print(f"Total de registros procesados: {len(inventory_v1)}")
+    # 3. Conversión de Tipos de Datos
+    df_v1['timestamp'] = pd.to_datetime(df_v1['timestamp'])
+    df_v1['expiry_date'] = pd.to_datetime(df_v1['expiry_date'])
+    
+    # 4. Feature Engineering (Ingeniería de Características)
+    # Calculamos cuántos días faltaban para el vencimiento en el momento del evento
+    df_v1['days_to_expiry'] = (df_v1['expiry_date'] - df_v1['timestamp']).dt.days
+    
+    # Creamos una columna booleana para identificar productos en riesgo (ej. vencen en < 3 días)
+    df_v1['is_at_risk'] = df_v1['days_to_expiry'] <= 3
+    
+    # 5. Manejo de Datos Faltantes (Imputación Simple)
+    # Si algún valor nutricional falló en la ingesta, lo llenamos con 0 para evitar errores en modelos
+    cols_to_fix = ['calories_100g', 'proteins_100g', 'carbs_100g']
+    for col in cols_to_fix:
+        df_v1[col] = df_v1[col].fillna(0)
+
+    # 6. Guardar el Producto Final (Hito 1)
+    os.makedirs("data/processed", exist_ok=True)
+    output_path = "data/processed/inventory_v1.csv"
+    df_v1.to_csv(output_path, index=False)
+    
+    print(f"✅ Dataset V1 generado exitosamente con {len(df_v1)} registros.")
+    print(f"📁 Archivo guardado en: {output_path}")
+    
+    # Mostrar resumen de calidad
+    print("\n--- Resumen del Dataset ---")
+    print(df_v1[['event_type', 'classification']].value_counts())
 
 if __name__ == "__main__":
-    process_v1_dataset()
+    process_and_enrich_data()

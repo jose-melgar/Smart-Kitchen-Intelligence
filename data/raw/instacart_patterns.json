@@ -1,0 +1,280 @@
+{
+  "distribucion_horas": {
+    "10": 0.0843,
+    "11": 0.0832,
+    "15": 0.0829,
+    "14": 0.0827,
+    "13": 0.0813,
+    "12": 0.0798,
+    "16": 0.0797,
+    "9": 0.0754,
+    "17": 0.0669,
+    "18": 0.0535,
+    "8": 0.0521,
+    "19": 0.0411,
+    "20": 0.0305,
+    "7": 0.0269,
+    "21": 0.0228,
+    "22": 0.018,
+    "23": 0.0117,
+    "6": 0.0089,
+    "0": 0.0067,
+    "1": 0.0036,
+    "5": 0.0028,
+    "2": 0.0022,
+    "4": 0.0016,
+    "3": 0.0016
+  },
+  "top_50_productos": [
+    {
+      "product_id": 4605,
+      "product_name": "Yellow Onions",
+      "department_id": 4
+    },
+    {
+      "product_id": 4920,
+      "product_name": "Seedless Red Grapes",
+      "department_id": 4
+    },
+    {
+      "product_id": 5077,
+      "product_name": "100% Whole Wheat Bread",
+      "department_id": 3
+    },
+    {
+      "product_id": 5876,
+      "product_name": "Organic Lemon",
+      "department_id": 4
+    },
+    {
+      "product_id": 8277,
+      "product_name": "Apple Honeycrisp Organic",
+      "department_id": 4
+    },
+    {
+      "product_id": 8518,
+      "product_name": "Organic Red Onion",
+      "department_id": 4
+    },
+    {
+      "product_id": 9076,
+      "product_name": "Blueberries",
+      "department_id": 1
+    },
+    {
+      "product_id": 10749,
+      "product_name": "Organic Red Bell Pepper",
+      "department_id": 4
+    },
+    {
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "department_id": 4
+    },
+    {
+      "product_id": 16797,
+      "product_name": "Strawberries",
+      "department_id": 4
+    },
+    {
+      "product_id": 17794,
+      "product_name": "Carrots",
+      "department_id": 4
+    },
+    {
+      "product_id": 19057,
+      "product_name": "Organic Large Extra Fancy Fuji Apple",
+      "department_id": 4
+    },
+    {
+      "product_id": 19660,
+      "product_name": "Spring Water",
+      "department_id": 7
+    },
+    {
+      "product_id": 21137,
+      "product_name": "Organic Strawberries",
+      "department_id": 4
+    },
+    {
+      "product_id": 21616,
+      "product_name": "Organic Baby Arugula",
+      "department_id": 4
+    },
+    {
+      "product_id": 21903,
+      "product_name": "Organic Baby Spinach",
+      "department_id": 4
+    },
+    {
+      "product_id": 22035,
+      "product_name": "Organic Whole String Cheese",
+      "department_id": 16
+    },
+    {
+      "product_id": 22935,
+      "product_name": "Organic Yellow Onion",
+      "department_id": 4
+    },
+    {
+      "product_id": 24852,
+      "product_name": "Banana",
+      "department_id": 4
+    },
+    {
+      "product_id": 24964,
+      "product_name": "Organic Garlic",
+      "department_id": 4
+    },
+    {
+      "product_id": 26209,
+      "product_name": "Limes",
+      "department_id": 4
+    },
+    {
+      "product_id": 26604,
+      "product_name": "Organic Blackberries",
+      "department_id": 4
+    },
+    {
+      "product_id": 27086,
+      "product_name": "Half & Half",
+      "department_id": 16
+    },
+    {
+      "product_id": 27104,
+      "product_name": "Fresh Cauliflower",
+      "department_id": 4
+    },
+    {
+      "product_id": 27845,
+      "product_name": "Organic Whole Milk",
+      "department_id": 16
+    },
+    {
+      "product_id": 27966,
+      "product_name": "Organic Raspberries",
+      "department_id": 4
+    },
+    {
+      "product_id": 28204,
+      "product_name": "Organic Fuji Apple",
+      "department_id": 4
+    },
+    {
+      "product_id": 28985,
+      "product_name": "Michigan Organic Kale",
+      "department_id": 4
+    },
+    {
+      "product_id": 30391,
+      "product_name": "Organic Cucumber",
+      "department_id": 4
+    },
+    {
+      "product_id": 30489,
+      "product_name": "Original Hummus",
+      "department_id": 20
+    },
+    {
+      "product_id": 31717,
+      "product_name": "Organic Cilantro",
+      "department_id": 4
+    },
+    {
+      "product_id": 34126,
+      "product_name": "Organic Italian Parsley Bunch",
+      "department_id": 4
+    },
+    {
+      "product_id": 35951,
+      "product_name": "Organic Unsweetened Almond Milk",
+      "department_id": 16
+    },
+    {
+      "product_id": 37646,
+      "product_name": "Organic Gala Apples",
+      "department_id": 4
+    },
+    {
+      "product_id": 39275,
+      "product_name": "Organic Blueberries",
+      "department_id": 4
+    },
+    {
+      "product_id": 39877,
+      "product_name": "Organic Granny Smith Apple",
+      "department_id": 4
+    },
+    {
+      "product_id": 40706,
+      "product_name": "Organic Grape Tomatoes",
+      "department_id": 4
+    },
+    {
+      "product_id": 41950,
+      "product_name": "Organic Tomato Cluster",
+      "department_id": 4
+    },
+    {
+      "product_id": 42265,
+      "product_name": "Organic Baby Carrots",
+      "department_id": 4
+    },
+    {
+      "product_id": 43352,
+      "product_name": "Raspberries",
+      "department_id": 4
+    },
+    {
+      "product_id": 44359,
+      "product_name": "Organic Small Bunch Celery",
+      "department_id": 4
+    },
+    {
+      "product_id": 44632,
+      "product_name": "Sparkling Water Grapefruit",
+      "department_id": 7
+    },
+    {
+      "product_id": 45007,
+      "product_name": "Organic Zucchini",
+      "department_id": 4
+    },
+    {
+      "product_id": 45066,
+      "product_name": "Honeycrisp Apple",
+      "department_id": 4
+    },
+    {
+      "product_id": 46979,
+      "product_name": "Asparagus",
+      "department_id": 4
+    },
+    {
+      "product_id": 47209,
+      "product_name": "Organic Hass Avocado",
+      "department_id": 4
+    },
+    {
+      "product_id": 47626,
+      "product_name": "Large Lemon",
+      "department_id": 4
+    },
+    {
+      "product_id": 47766,
+      "product_name": "Organic Avocado",
+      "department_id": 4
+    },
+    {
+      "product_id": 49235,
+      "product_name": "Organic Half & Half",
+      "department_id": 16
+    },
+    {
+      "product_id": 49683,
+      "product_name": "Cucumber Kirby",
+      "department_id": 4
+    }
+  ]
+}

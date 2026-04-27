@@ -1,25 +1,27 @@
 # Esquema de Datos Verificado (Star Schema)
 
 ## Arquitectura del Modelo
-El sistema implementa un **Modelo en Estrella (Star Schema)** desnormalizado para optimizar la carga analítica y la preparación de características (feature engineering).
+El sistema implementa un **Modelo en Estrella (Star Schema)** desnormalizado para optimizar la carga analítica y la preparación de características (feature engineering). Esta estructura permite separar los eventos transaccionales de los metadatos nutricionales.
 
 ### Tabla de Hechos (Fact Table)
-**`fact_inventory_events`**: Centraliza el flujo transaccional de la cocina.
-- **PK:** `event_id` (Identificador único de evento).
-- **FK:** `product_id` (Llave foránea vinculada al catálogo).
-- **Métricas:** `timestamp`, `action_type`, `location`, `expiry_date`.
+**`fact_inventory_events`**: Centraliza el flujo transaccional y el ciclo de vida de los productos en la cocina.
+- **PK:** `event_id` (UUID de transacción).
+- **FK:** `product_id` (Vínculo con la dimensión de productos).
+- **Atributos de Lote:** `stock_id` (Identificador único de la instancia física/lote).
+- **Métricas Temporales:** `timestamp` (Precisión de segundos), `expiry_date` (Fecha de vencimiento).
+- **Dimensiones de Negocio:** `event_type` (IN/OUT), `quantity` (Depleción granular), `classification` (Purchase, Consumption, Waste, Forced_Waste).
 
 ### Tabla de Dimensiones (Dimension Table)
-**`dim_products`**: Almacena atributos estáticos y metadatos de salud.
-- **PK:** `product_id`
-- **Atributos:** `product_name`, `category`, `nutriscore`, `calories_100g`, `proteins_100g`, `carbs_100g`.
+**`dim_products`**: Almacena atributos estáticos y metadatos de salud validados por la USDA.
+- **PK:** `product_id` (Referencia Instacart).
+- **Atributos:** `product_name`, `category` (Department ID), `nutriscore` (Calculado), `calories_100g`, `proteins_100g`, `carbs_100g`.
 
 ## Justificación y Alternativas del Esquema
 
-### ¿Por qué Star Schema sobre otras arquitecturas?
-1. **Eficiencia en Agregaciones:** A diferencia de un esquema relacional normalizado (3NF), la estrella minimiza el número de JOINS necesarios para calcular métricas nutricionales acumuladas por ubicación o periodos de tiempo, reduciendo la latencia en consultas de analítica descriptiva.
-2. **Flexibilidad para Recomendación (Semana 10):** El mantenimiento de la dimensión `dim_products` aislada permite alimentar modelos de filtrado colaborativo y factorización de matrices de manera eficiente, manteniendo la integridad referencial sin redundancia de metadatos pesados en los logs de eventos.
-3. **Proyección de Grafos (Semana 12):** Se ha determinado que este esquema es el más apto para actuar como "fuente de verdad" antes de proyectar los datos hacia una base de grafos nativa. Construir un grafo de co-ocurrencia a partir de una tabla de hechos limpia es computacionalmente más barato que realizar una ingesta directa sobre una estructura de grafos no validada.
+### ¿Por qué Star Schema?
+1. **Eficiencia en Agregaciones:** Minimiza los JOINS necesarios para calcular métricas como el "Desperdicio por Categoría" o "Consumo Proteico Semanal".
+2. **Trazabilidad por stock_id:** La inclusión del `stock_id` en la tabla de hechos permite diferenciar instancias del mismo `product_id`, resolviendo el problema de mezclar productos antiguos con nuevos.
+3. **Proyección de Grafos (Hito 2):** Este esquema facilita la creación de un grafo de co-ocurrencia. Los `product_id` actúan como nodos y los `event_id` compartidos (mismo timestamp de compra) definen las aristas.
 
 ### Comparativa con Alternativas
-- **Vs. Documental (NoSQL):** Un modelo NoSQL (estilo MongoDB) facilitaría la ingesta, pero penalizaría la consistencia de los datos nutricionales. Si la API actualiza el Nutriscore de un producto, en un modelo documental habría que actualizar miles de documentos; en nuestro Star Schema, solo se actualiza una fila en `dim_products`.
+- **Vs. Modelo Documental:** Evita la redundancia de datos nutricionales pesados. Una actualización en los valores de la USDA solo requiere modificar una fila en `dim_products`, manteniendo la integridad en millones de eventos históricos.

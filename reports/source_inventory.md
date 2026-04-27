@@ -1,14 +1,26 @@
-# Inventario de Fuentes de Datos
+# Inventario de Fuentes de Datos (Master Data Management)
 
-## Fuente 1: OpenFoodFacts (Catálogo)
-- **URL:** [https://world.openfoodfacts.org/data](https://world.openfoodfacts.org/data)
-- **Uso:** Capa de catálogo de productos (información nutricional y categorías).
+Este documento detalla el origen y el propósito de los datos utilizados para la construcción del Dataset V1 del proyecto Smart Kitchen Intelligence.
 
-## Fuente 2: Logs de Interacción (Simulados)
-- **Origen:** Generación interna mediante `src/simulation.py`.
-- **Uso:** Capa de interacción (entradas y salidas).
+## Fuente 1: Instacart Online Grocery Dataset (Patrones de Consumo)
+* **Origen:** [Kaggle - Instacart Dataset](https://www.kaggle.com/datasets/yasserh/instacart-online-grocery-basket-analysis-dataset)
+* **Método de Ingesta:** Automatizado mediante la librería `kagglehub`.
+* **Uso:** Proporciona la "Inteligencia de Mercado". Se extraen las probabilidades estocásticas de compra por hora del día y la frecuencia de productos para alimentar el motor de simulación, asegurando que los datos sintéticos sigan comportamientos humanos reales.
 
-## Estrategia de Resiliencia y Contingencia
-Dada la naturaleza crítica de la disponibilidad de datos en sistemas de Big Data, se ha implementado un mecanismo de **Fallback (Respaldo)** en el script de ingesta (`src/ingestion.py`). 
-- **Escenario:** En caso de que la API de OpenFoodFacts no responda (errores 5xx) o presente latencia excesiva, el sistema activa automáticamente la generación de un "Catálogo de Emergencia" (Mock Data).
-- **Objetivo:** Garantizar la continuidad del pipeline de procesamiento y permitir que las capas de recomendación y grafos funcionen incluso ante inestabilidades del servidor externo.
+## Fuente 2: USDA FoodData Central (Metadata Nutricional)
+* **URL:** [https://fdc.nal.usda.gov/](https://fdc.nal.usda.gov/)
+* **Método de Ingesta:** API REST con autenticación mediante API Key.
+* **Uso:** Fuente primaria de verdad para la información nutricional (Calorías, Proteínas, Carbohidratos). Se seleccionó sobre OpenFoodFacts por su alineación exacta con el catálogo de productos estadounidense presente en Instacart.
+
+## Fuente 3: Logs de Interacción Basados en Evidencia
+* **Origen:** Motor de simulación estocástica (`src/simulation.py`).
+* **Uso:** Genera la capa transaccional (Hechos). Utiliza los pesos estadísticos de la Fuente 1 para crear un historial de 30 días con alta fidelidad técnica (UUIDs, Timestamps y Depleción Granular).
+
+---
+
+## Estrategia de Integridad y Calidad de Datos
+
+Dada la variabilidad de las APIs externas, el pipeline implementa un protocolo de **Búsqueda en Dos Niveles (Two-Tier Search)**:
+
+1. **Capa Intermediaria (Normalización):** El script de ingesta actúa como traductor, limpiando modificadores comerciales (ej. "Organic", "Bag of") para maximizar la tasa de acierto (*hit rate*) en la API de la USDA.
+2. **Transparencia de Datos (Missingness):** En lugar de inyectar datos sintéticos arbitrarios, el sistema opta por el **Manejo Explícito de Ausencias**. Si un producto no es hallado, se registra como `Falta Dato`, permitiendo una posterior fase de imputación estadística en el preprocesamiento.

@@ -1,48 +1,103 @@
 import requests
 import pandas as pd
 import os
+import json
+import time
+from dotenv import load_dotenv
 
-def get_mock_catalog():
-    """Genera un catálogo básico si la API falla para no detener el desarrollo."""
-    print("Generando catálogo de emergencia (Mock Data)...")
-    mock_data = [
-        {"product_id": "8410010012345", "product_name": "Leche Entera", "category": "Lácteos", "nutriscore": "B", "calories_100g": 62, "proteins_100g": 3.2, "carbs_100g": 4.8},
-        {"product_id": "8410020054321", "product_name": "Arroz Integral", "category": "Granos", "nutriscore": "A", "calories_100g": 350, "proteins_100g": 7.5, "carbs_100g": 72},
-        {"product_id": "8410030098765", "product_name": "Atún en lata", "category": "Pescados", "nutriscore": "B", "calories_100g": 116, "proteins_100g": 26, "carbs_100g": 0.1},
-        {"product_id": "8410040011111", "product_name": "Yogurt Natural", "category": "Lácteos", "nutriscore": "A", "calories_100g": 59, "proteins_100g": 3.5, "carbs_100g": 4.7},
-        {"product_id": "8410050022222", "product_name": "Pasta Espagueti", "category": "Cereales", "nutriscore": "A", "calories_100g": 358, "proteins_100g": 12, "carbs_100g": 71}
-    ]
-    return pd.DataFrame(mock_data)
+load_dotenv()
+USDA_API_KEY = os.getenv("USDA_API_KEY")
 
-def fetch_openfoodfacts_data(limit=50):
-    url = f"https://world.openfoodfacts.org/cgi/search.pl?action=process&sort_by=unique_scans_n&page_size={limit}&json=True&tagtype_0=languages&tag_contains_0=contains&tag_0=spanish"
-    headers = {"User-Agent": "SmartKitchenIntelligence - UPC-Project - Version 1.1"}
+def fetch_from_usda(product_name):
+    if not USDA_API_KEY:
+        print("❌ Error: No se encontró la USDA_API_KEY en el archivo .env")
+        return None
+    """Consulta la USDA FoodData Central para obtener nutrición real."""
+    # Limpiamos el nombre para mejorar la búsqueda
+    clean_query = product_name.replace("Organic", "").strip()
+    url = f"https://api.nal.usda.gov/fdc/v1/foods/search?api_key={USDA_API_KEY}&query={clean_query}&pageSize=1"
     
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, timeout=10)
         if response.status_code == 200:
-            products = response.json().get('products', [])
-            if products:
-                print(f"Éxito: {len(products)} productos obtenidos de la API.")
-                return pd.DataFrame([{
-                    "product_id": p.get('code'),
-                    "product_name": p.get('product_name', 'N/A'),
-                    "category": p.get('categories', 'N/A').split(',')[0],
-                    "nutriscore": p.get('nutrition_grades', 'N/A').upper(),
-                    "calories_100g": p.get('nutriments', {}).get('energy-kcal_100g', 0),
-                    "proteins_100g": p.get('nutriments', {}).get('proteins_100g', 0),
-                    "carbs_100g": p.get('nutriments', {}).get('carbohydrates_100g', 0)
-                } for p in products])
-        
-        print(f"Advertencia: Servidor respondió con {response.status_code}. Usando fallback.")
-    except Exception as e:
-        print(f"Error de conexión: {e}. Usando fallback.")
+            data = response.json()
+            if data['foods']:
+                food = data['foods'][0]
+                nutrients = food.get('foodNutrients', [])
+                
+                # IDs de la USDA: 1008=Energía, 1003=Proteína, 1005=Carbohidratos
+                res = {}
+                for n in nutrients:
+                    if n['nutrientId'] == 1008: res['calories_100g'] = n['value']
+                    if n['nutrientId'] == 1003: res['proteins_100g'] = n['value']
+                    if n['nutrientId'] == 1005: res['carbs_100g'] = n['value']
+                return res
+    except Exception:
+        pass
+    return None
+
+def build_catalog_from_movements():
+    print("1. Analizando movimientos y recuperando nombres desde patrones...")
     
-    return get_mock_catalog()
+    # Cargar movimientos (solo tienen IDs)
+    movements_path = "data/raw/movements_raw.csv"
+    if not os.path.exists(movements_path):
+        raise FileNotFoundError("Ejecuta simulation.py primero.")
+    
+    movements = pd.read_csv(movements_path)
+    unique_ids = movements['product_id'].unique()
+
+    # Cargar patrones para recuperar el nombre (mapeo ID -> Nombre)
+    with open("data/raw/instacart_patterns.json", "r") as f:
+        patterns = json.load(f)
+    
+    # Crear un diccionario de búsqueda rápida {id: nombre}
+    id_to_name = {p['product_id']: p['product_name'] for p in patterns['top_50_productos']}
+    id_to_dept = {p['product_id']: p['department_id'] for p in patterns['top_50_productos']}
+
+    print(f"Detectados {len(unique_ids)} productos únicos. Consultando USDA...")
+    
+    catalog_list = []
+    for p_id in unique_ids:
+        p_name = id_to_name.get(p_id, "Unknown Product")
+        p_dept = id_to_dept.get(p_id, 0)
+        
+        print(f"Buscando: {p_name} (ID: {p_id})...")
+        usda_data = fetch_from_usda(p_name)
+        
+        if usda_data:
+            usda_data.update({
+                "product_id": p_id, 
+                "product_name": p_name,
+                "category": p_dept
+            })
+            catalog_list.append(usda_data)
+        else:
+            catalog_list.append({
+                "product_id": p_id, "product_name": p_name, "category": p_dept,
+                "nutriscore": "Falta Dato", "calories_100g": None,
+                "proteins_100g": None, "carbs_100g": None
+            })
+        
+        # Rate limit preventivo
+        time.sleep(1.1) 
+
+    df_catalog = pd.DataFrame(catalog_list)
+    
+    # Asignación de Nutriscore basada en calorías para los datos obtenidos
+    def assign_nutriscore(cal):
+        if pd.isna(cal): return "Falta Dato"
+        if cal < 50: return "A"
+        if cal < 150: return "B"
+        if cal < 300: return "C"
+        return "D"
+    
+    if not df_catalog.empty:
+        df_catalog['nutriscore'] = df_catalog['calories_100g'].apply(assign_nutriscore)
+    
+    os.makedirs("data/raw", exist_ok=True)
+    df_catalog.to_csv("data/raw/catalog_raw.csv", index=False)
+    print(f"✅ Catálogo generado con {len(df_catalog)} registros alineados.")
 
 if __name__ == "__main__":
-    os.makedirs('data/raw', exist_ok=True)
-    df_catalog = fetch_openfoodfacts_data(limit=50) # Reducimos el límite para evitar saturación
-    path = 'data/raw/catalog_raw.csv'
-    df_catalog.to_csv(path, index=False)
-    print(f"Catálogo listo en {path}")
+    build_catalog_from_movements()

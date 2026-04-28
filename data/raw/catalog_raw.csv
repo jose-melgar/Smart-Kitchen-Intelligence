@@ -1,51 +1,51 @@
 proteins_100g,carbs_100g,calories_100g,product_id,product_name,category,nutriscore
-0.0,33.3,167.0,24964,Organic Garlic,4,C
-0.0,6.67,300.0,5876,Organic Lemon,4,D
-2.82,3.52,25.0,21616,Organic Baby Arugula,4,A
-0.5,6.79,34.0,49683,Cucumber Kirby,4,A
-0.5,6.79,34.0,30391,Organic Cucumber,4,A
-2.35,3.53,18.0,46979,Asparagus,4,A
-1.18,8.24,35.0,42265,Organic Baby Carrots,4,A
-12.5,40.6,312.0,24852,Banana,4,D
-0.71,12.1,57.0,39275,Organic Blueberries,4,B
-1.28,8.97,38.0,17794,Carrots,4,A
-2.98,5.06,28.0,41950,Organic Tomato Cluster,4,A
-1.81,8.32,,47209,Organic Hass Avocado,4,Falta Dato
-1.43,12.1,50.0,43352,Raspberries,4,B
-2.68,3.36,23.0,21903,Organic Baby Spinach,4,A
-3.39,5.08,62.0,27845,Organic Whole Milk,16,B
-2.92,4.42,35.0,28985,Michigan Organic Kale,4,A
-3.13,4.3,131.0,27086,Half & Half,16,B
-0.68,6.76,30.0,8518,Organic Red Onion,4,A
-0.0,0.0,0.0,31717,Organic Cilantro,4,A
-10.7,2.36,55.0,47626,Large Lemon,4,B
-7.43,76.25,392.0,44359,Organic Small Bunch Celery,4,D
-0.266,14.1,,39877,Organic Granny Smith Apple,4,Falta Dato
-0.71,9.29,36.0,16797,Strawberries,4,A
-0.32,14.3,52.0,37646,Organic Gala Apples,4,B
-0.71,12.1,57.0,9076,Blueberries,1,B
-1.45,6.25,50.0,22035,Organic Whole String Cheese,16,B
-1.47,15.4,59.0,26604,Organic Blackberries,4,B
-0.71,9.29,36.0,21137,Organic Strawberries,4,A
-1.19,7.14,36.0,40706,Organic Grape Tomatoes,4,A
-0.0,0.0,0.0,44632,Sparkling Water Grapefruit,7,A
-1.43,12.1,50.0,27966,Organic Raspberries,4,B
-1.05,4.21,21.0,45007,Organic Zucchini,4,A
-1.94,5.01,52.0,27104,Fresh Cauliflower,4,B
-11.6,48.8,256.0,5077,100% Whole Wheat Bread,3,C
 0.0,3.81,2.0,45066,Honeycrisp Apple,4,A
 3.13,4.3,131.0,49235,Organic Half & Half,16,B
-3.89,88.3,346.0,13176,Bag of Organic Bananas,4,D
-7.14,14.3,214.0,30489,Original Hummus,20,C
-0.68,7.43,30.0,22935,Organic Yellow Onion,4,A
-1.9,7.36,427.0,47766,Organic Avocado,4,D
-0.55,0.34,15.0,35951,Organic Unsweetened Almond Milk,16,A
-1.18,17.6,71.0,4920,Seedless Red Grapes,4,B
-0.896,6.65,,10749,Organic Red Bell Pepper,4,Falta Dato
+0.0,33.3,167.0,24964,Organic Garlic,4,C
 7.43,76.25,392.0,34126,Organic Italian Parsley Bunch,4,D
-0.0,10.4,30.0,26209,Limes,4,A
+1.19,7.14,36.0,40706,Organic Grape Tomatoes,4,A
+0.71,12.1,57.0,39275,Organic Blueberries,4,B
+1.81,8.32,,47209,Organic Hass Avocado,4,Falta Dato
+11.6,48.8,256.0,5077,100% Whole Wheat Bread,3,C
+3.89,88.3,346.0,13176,Bag of Organic Bananas,4,D
+1.94,5.01,52.0,27104,Fresh Cauliflower,4,B
+0.68,6.76,30.0,8518,Organic Red Onion,4,A
 0.68,7.43,30.0,4605,Yellow Onions,4,A
-0.0,0.0,0.0,19660,Spring Water,7,A
+3.39,5.08,62.0,27845,Organic Whole Milk,16,B
 0.102,14.7,,8277,Apple Honeycrisp Organic,4,Falta Dato
+1.18,17.6,71.0,4920,Seedless Red Grapes,4,B
+0.68,7.43,30.0,22935,Organic Yellow Onion,4,A
+0.32,14.3,52.0,37646,Organic Gala Apples,4,B
+2.68,3.36,23.0,21903,Organic Baby Spinach,4,A
+2.82,3.52,25.0,21616,Organic Baby Arugula,4,A
+1.47,15.4,59.0,26604,Organic Blackberries,4,B
+0.0,0.0,0.0,44632,Sparkling Water Grapefruit,7,A
+12.5,40.6,312.0,24852,Banana,4,D
+0.0,10.4,30.0,26209,Limes,4,A
+0.266,14.1,,39877,Organic Granny Smith Apple,4,Falta Dato
+0.0,6.67,300.0,5876,Organic Lemon,4,D
+1.05,4.21,21.0,45007,Organic Zucchini,4,A
+0.55,0.34,15.0,35951,Organic Unsweetened Almond Milk,16,A
+1.45,6.25,50.0,22035,Organic Whole String Cheese,16,B
+7.14,14.3,214.0,30489,Original Hummus,20,C
+0.71,9.29,36.0,21137,Organic Strawberries,4,A
+1.28,8.97,38.0,17794,Carrots,4,A
+1.43,12.1,50.0,43352,Raspberries,4,B
+7.43,76.25,392.0,44359,Organic Small Bunch Celery,4,D
+0.71,12.1,57.0,9076,Blueberries,1,B
+0.0,0.0,0.0,31717,Organic Cilantro,4,A
+3.13,4.3,131.0,27086,Half & Half,16,B
+2.92,4.42,35.0,28985,Michigan Organic Kale,4,A
+0.5,6.79,34.0,30391,Organic Cucumber,4,A
 0.0,90.0,400.0,28204,Organic Fuji Apple,4,D
+0.896,6.65,,10749,Organic Red Bell Pepper,4,Falta Dato
+10.7,2.36,55.0,47626,Large Lemon,4,B
 0.148,15.7,,19057,Organic Large Extra Fancy Fuji Apple,4,Falta Dato
+2.98,5.06,28.0,41950,Organic Tomato Cluster,4,A
+0.5,6.79,34.0,49683,Cucumber Kirby,4,A
+1.9,7.36,427.0,47766,Organic Avocado,4,D
+1.18,8.24,35.0,42265,Organic Baby Carrots,4,A
+0.71,9.29,36.0,16797,Strawberries,4,A
+1.43,12.1,50.0,27966,Organic Raspberries,4,B
+2.35,3.53,18.0,46979,Asparagus,4,A
+0.0,0.0,0.0,19660,Spring Water,7,A

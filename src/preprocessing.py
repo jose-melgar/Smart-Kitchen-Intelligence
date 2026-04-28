@@ -1,52 +1,55 @@
-import pandas as pd
+import polars as pl
 import os
 
-def process_and_enrich_data():
-    print("🚀 Iniciando el proceso de preprocesamiento y enriquecimiento...")
+def run_preprocessing():
+    print("🧹 Iniciando Pre-procesamiento (Polars) para alto volumen...")
     
-    # 1. Cargar los datasets crudos
-    catalog_path = "data/raw/catalog_raw.csv"
+    # 1. Definición de rutas EXACTAS
     movements_path = "data/raw/movements_raw.csv"
-    
-    if not os.path.exists(catalog_path) or not os.path.exists(movements_path):
-        print("❌ Error: Faltan archivos en data/raw/. Ejecuta ingestion.py y simulation.py primero.")
+    catalog_path = "data/raw/catalog_raw.csv" 
+    output_path = "data/processed/inventory_v1.csv"
+
+    # Verificar existencia de archivos
+    if not os.path.exists(movements_path):
+        print(f"❌ Error: No se encuentra {movements_path}")
+        return
+    if not os.path.exists(catalog_path):
+        print(f"❌ Error: No se encuentra {catalog_path}")
         return
 
-    catalog = pd.read_csv(catalog_path)
-    movements = pd.read_csv(movements_path)
-    
-    # 2. Unión de Datos (Inner Join)
-    # Unimos por product_id para asegurar que cada movimiento tenga su metadata nutricional
-    df_v1 = pd.merge(movements, catalog, on="product_id", how="inner")
-    
-    # 3. Conversión de Tipos de Datos
-    df_v1['timestamp'] = pd.to_datetime(df_v1['timestamp'])
-    df_v1['expiry_date'] = pd.to_datetime(df_v1['expiry_date'])
-    
-    # 4. Feature Engineering (Ingeniería de Características)
-    # Calculamos cuántos días faltaban para el vencimiento en el momento del evento
-    df_v1['days_to_expiry'] = (df_v1['expiry_date'] - df_v1['timestamp']).dt.days
-    
-    # Creamos una columna booleana para identificar productos en riesgo (ej. vencen en < 3 días)
-    df_v1['is_at_risk'] = df_v1['days_to_expiry'] <= 3
-    
-    # 5. Manejo de Datos Faltantes (Imputación Simple)
-    # Si algún valor nutricional falló en la ingesta, lo llenamos con 0 para evitar errores en modelos
-    cols_to_fix = ['calories_100g', 'proteins_100g', 'carbs_100g']
-    for col in cols_to_fix:
-        df_v1[col] = df_v1[col].fillna(0)
+    # 2. Carga ultra-rápida con Polars
+    df_movements = pl.read_csv(movements_path)
+    df_catalog = pl.read_csv(catalog_path)
 
-    # 6. Guardar el Producto Final (Hito 1)
+    # 3. Limpieza de columnas duplicadas en el catálogo
+    # Solo tomamos las métricas nutricionales y la categoría para evitar colisión de nombres
+    catalog_subset = df_catalog.select([
+        "product_id", 
+        "nutriscore", 
+        "calories_100g", 
+        "proteins_100g", 
+        "carbs_100g", 
+        "category"
+    ])
+
+    # 4. Asegurar compatibilidad de tipos
+    df_movements = df_movements.with_columns(pl.col("product_id").cast(pl.Int64))
+    catalog_subset = catalog_subset.with_columns(pl.col("product_id").cast(pl.Int64))
+
+    # 5. Ejecutar el Join
+    inventory_v1 = df_movements.join(
+        catalog_subset,
+        on="product_id",
+        how="left"
+    )
+
+    # 6. Guardar el resultado
     os.makedirs("data/processed", exist_ok=True)
-    output_path = "data/processed/inventory_v1.csv"
-    df_v1.to_csv(output_path, index=False)
+    inventory_v1.write_csv(output_path)
     
-    print(f"✅ Dataset V1 generado exitosamente con {len(df_v1)} registros.")
-    print(f"📁 Archivo guardado en: {output_path}")
-    
-    # Mostrar resumen de calidad
-    print("\n--- Resumen del Dataset ---")
-    print(df_v1[['event_type', 'classification']].value_counts())
+    print(f"✅ ¡Dataset consolidado con éxito!")
+    print(f"📁 Archivo generado: {output_path}")
+    print(f"📊 Total de registros procesados: {len(inventory_v1)}")
 
 if __name__ == "__main__":
-    process_and_enrich_data()
+    run_preprocessing()

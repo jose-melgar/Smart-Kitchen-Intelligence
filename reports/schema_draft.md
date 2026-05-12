@@ -1,27 +1,18 @@
-# Esquema de Datos Verificado (Star Schema)
+# Esquema de Datos y Arquitectura de Características
 
-## Arquitectura del Modelo
-El sistema implementa un **Modelo en Estrella (Star Schema)** desnormalizado para optimizar la carga analítica y la preparación de características (feature engineering). Esta estructura permite separar los eventos transaccionales de los metadatos nutricionales.
+## 1. Arquitectura de Almacenamiento (Hito 1)
+El sistema implementa un **Modelo en Estrella (Star Schema)** desnormalizado para optimizar la carga analítica inicial.
 
-### Tabla de Hechos (Fact Table)
-**`fact_inventory_events`**: Centraliza el flujo transaccional y el ciclo de vida de los productos en la cocina.
-- **PK:** `event_id` (UUID de transacción).
-- **FK:** `product_id` (Vínculo con la dimensión de productos).
-- **Atributos de Lote:** `stock_id` (Identificador único de la instancia física/lote).
-- **Métricas Temporales:** `timestamp` (Precisión de segundos), `expiry_date` (Fecha de vencimiento).
-- **Dimensiones de Negocio:** `event_type` (IN/OUT), `quantity` (Depleción granular), `classification` (Purchase, Consumption, Waste, Forced_Waste).
+- **Tabla de Hechos (`fact_inventory_events`):** Centraliza el flujo transaccional, métricas temporales y clasificación de negocio (`event_type`, `quantity`, `expiry_date`).
+- **Tabla de Dimensiones (`dim_products`):** Almacena atributos estáticos y metadatos nutricionales validados por la USDA (`product_name`, `category`, `nutriscore`).
 
-### Tabla de Dimensiones (Dimension Table)
-**`dim_products`**: Almacena atributos estáticos y metadatos de salud validados por la USDA.
-- **PK:** `product_id` (Referencia Instacart).
-- **Atributos:** `product_name`, `category` (Department ID), `nutriscore` (Calculado), `calories_100g`, `proteins_100g`, `carbs_100g`.
+## 2. Evolución hacia Matriz Densa (Hito 2)
+Para el análisis de Big Data y la reducción de dimensionalidad, el esquema evoluciona:
 
-## Justificación y Alternativas del Esquema
+- **Denormalización Activa:** Se realiza un JOIN entre hechos y dimensiones para crear un registro plano.
+- **Codificación Densa:** En lugar de expandir el esquema con columnas One-Hot (que fragmentarían el modelo en un espacio disperso), se aplica **CatBoost Encoding**. Esto mantiene el esquema compacto.
+- **Proyección Tensorial:** El resultado final es una matriz de 56 dimensiones optimizada para operaciones de álgebra lineal, sirviendo como entrada para el PCA.
 
-### ¿Por qué Star Schema?
-1. **Eficiencia en Agregaciones:** Minimiza los JOINS necesarios para calcular métricas como el "Desperdicio por Categoría" o "Consumo Proteico Semanal".
-2. **Trazabilidad por stock_id:** La inclusión del `stock_id` en la tabla de hechos permite diferenciar instancias del mismo `product_id`, resolviendo el problema de mezclar productos antiguos con nuevos.
-3. **Proyección de Grafos (Hito 2):** Este esquema facilita la creación de un grafo de co-ocurrencia. Los `product_id` actúan como nodos y los `event_id` compartidos (mismo timestamp de compra) definen las aristas.
-
-### Comparativa con Alternativas
-- **Vs. Modelo Documental:** Evita la redundancia de datos nutricionales pesados. Una actualización en los valores de la USDA solo requiere modificar una fila en `dim_products`, manteniendo la integridad en millones de eventos históricos.
+## 3. Justificación del Diseño
+- **Eficiencia en Agregaciones:** El Star Schema minimiza los JOINS necesarios para reportes de desperdicio.
+- **Preparación para Clustering:** La transición a una matriz densa asegura que los algoritmos de agrupamiento de la Semana 7 calculen distancias euclidianas significativas en lugar de operar sobre ceros estructurales (ruido).

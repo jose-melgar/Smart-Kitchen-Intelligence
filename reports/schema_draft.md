@@ -1,18 +1,29 @@
-# Esquema de Datos y Arquitectura de Características
+# Esquema de Datos y Arquitectura de Inteligencia
 
 ## 1. Arquitectura de Almacenamiento (Hito 1)
-El sistema implementa un **Modelo en Estrella (Star Schema)** desnormalizado para optimizar la carga analítica inicial.
+El sistema implementa un **Modelo en Estrella (Star Schema)** desnormalizado para optimizar la carga analítica y la preparación de características.
 
-- **Tabla de Hechos (`fact_inventory_events`):** Centraliza el flujo transaccional, métricas temporales y clasificación de negocio (`event_type`, `quantity`, `expiry_date`).
-- **Tabla de Dimensiones (`dim_products`):** Almacena atributos estáticos y metadatos nutricionales validados por la USDA (`product_name`, `category`, `nutriscore`).
+### Tabla de Hechos (`fact_inventory_events`)
+Centraliza el flujo transaccional y el ciclo de vida del producto.
+- **PK/FK:** `event_id`, `product_id`, `stock_id`.
+- **Métricas:** `quantity`, `timestamp`, `expiry_date`.
+- **Dimensiones:** `event_type`, `classification`.
 
-## 2. Evolución hacia Matriz Densa (Hito 2)
-Para el análisis de Big Data y la reducción de dimensionalidad, el esquema evoluciona:
+### Tabla de Dimensiones (`dim_products`)
+Almacena metadatos de salud validados por la USDA.
+- **Atributos:** `product_name`, `category`, `nutriscore`, `calories_100g`, `proteins_100g`, `carbs_100g`.
 
-- **Denormalización Activa:** Se realiza un JOIN entre hechos y dimensiones para crear un registro plano.
-- **Codificación Densa:** En lugar de expandir el esquema con columnas One-Hot (que fragmentarían el modelo en un espacio disperso), se aplica **CatBoost Encoding**. Esto mantiene el esquema compacto.
-- **Proyección Tensorial:** El resultado final es una matriz de 56 dimensiones optimizada para operaciones de álgebra lineal, sirviendo como entrada para el PCA.
+## 2. Capa de Transformación y Proyección (Hito 2)
+Evolución hacia una **Matriz Tensorial Densa** para análisis avanzado:
+- **Denormalización Activa:** JOIN entre hechos y dimensiones para crear registros planos multimodales.
+- **Codificación Densa:** Implementación de **CatBoost Encoding** para mantener el esquema compacto y evitar la fragmentación de columnas OHE.
+- **Reducción de Dimensionalidad:** Proyección de 56 dimensiones a 30 componentes mediante **PCA**, reteniendo el 90% de la energía del sistema.
 
-## 3. Justificación del Diseño
-- **Eficiencia en Agregaciones:** El Star Schema minimiza los JOINS necesarios para reportes de desperdicio.
-- **Preparación para Clustering:** La transición a una matriz densa asegura que los algoritmos de agrupamiento de la Semana 7 calculen distancias euclidianas significativas en lugar de operar sobre ceros estructurales (ruido).
+## 3. Capa de Segmentación de Comportamiento (Hito 3)
+Inclusión del **Segmented Dataset**:
+- Los datos reducidos alimentan el modelo **DBSCAN Refinado**. El esquema final incorpora el atributo `cluster_label`, permitiendo que el sistema de recomendaciones consulte grupos de productos con patrones de consumo similares en lugar de items aislados.
+
+## 4. Justificación y Alternativas
+- **Vs. Modelo Documental:** El Star Schema evita la redundancia masiva y facilita las agregaciones temporales de Big Data.
+- **Trazabilidad:** La inclusión del `stock_id` resuelve el problema de mezclar productos antiguos con nuevos ingresos, una limitación común en inventarios planos.
+- **Preparación para Clustering:** La matriz densa asegura que el cálculo de distancias euclidianas sea significativo, eliminando el ruido de los ceros estructurales de las matrices dispersas.

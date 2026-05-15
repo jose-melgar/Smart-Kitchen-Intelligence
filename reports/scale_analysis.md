@@ -1,29 +1,28 @@
-# Análisis de Escala y Escalabilidad (Dataset V1)
+# Análisis de Escala y Escalabilidad Evolutiva (Hitos 1, 2 y 3)
 
-## Dimensiones Verificadas (Prototipo)
-- **Eventos:** ~1,500 - 3,000 registros de interacción (Simulación de 30 días).
-- **Catálogo:** 50 productos únicos alineados con la **USDA FoodData Central API**.
-- **Atributos:** 10-12 columnas unificadas en el Dataset V1.
+## 1. Evolución de las Dimensiones del Dataset
+El sistema ha sido diseñado para escalar desde una prueba de concepto hasta un entorno de Big Data masivo:
+- **Hito 1 (Prototipo V1):** Simulación inicial de 30 días con ~1,500 a 3,000 registros de interacción.
+- **Hito 2 (Escalabilidad V2):** Incremento a 25,444 registros transaccionales (90 días de historial para 10 hogares).
+- **Hito 3 (Segmentación V3):** Generación de 38 clusters de comportamiento sobre la matriz de 30 componentes ortogonales.
+- **Catálogo Maestro:** 50 productos únicos validados mediante la **USDA FoodData Central API**, asegurando una base nutricional con integridad científica.
 
-## Calidad y Completitud (Data Quality)
-- **Explicit Missingness:** Se identifica un porcentaje de nulos en variables nutricionales provenientes de la USDA. Siguiendo el protocolo de "Transparencia de Datos", estos no se rellenan con valores al azar en la ingesta, permitiendo una **Imputación de Datos** estadística (por promedio de categoría) en la fase de preprocesamiento.
-- **Lógica de Desperdicio:** El 100% de los registros `Waste` y `Forced_Waste` cuentan con integridad referencial respecto a su `stock_id` original, permitiendo un análisis preciso de la eficiencia de consumo.
+## 2. Calidad y Gestión de Datos (Data Quality)
+- **Explicit Missingness:** Se detectaron nulos en variables de la USDA. Siguiendo el protocolo de "Transparencia de Datos" del Hito 1, no se inyectaron valores sintéticos en la ingesta.
+- **Imputación Estadística (Hito 2):** En la fase de preprocesamiento, los nulos se gestionaron mediante imputación por promedio de categoría, garantizando que el pipeline de clustering no pierda registros críticos.
+- **Integridad de Lote:** El 100% de los registros de desperdicio (`Waste`) mantienen integridad referencial con su `stock_id` original, permitiendo un análisis preciso del ciclo de vida del producto.
 
-## Análisis de Escalabilidad y Cuellos de Botella
+## 3. Estrategia de Ingeniería de Características (De Disperso a Denso)
+Para mitigar la **Maldición de la Dimensionalidad** (Semana 3):
+- **Problema Inicial:** El uso de One-Hot Encoding (OHE) planteado en el Hito 1 generaba una matriz excesivamente dispersa (*sparse*) al escalar el catálogo.
+- **Solución Implementada:** Se sustituyó el OHE por **CatBoost Encoding** (Target Encoding). Esto redujo la dimensionalidad categórica a una sola columna densa basada en la probabilidad de consumo, eliminando el ruido estructural antes del PCA.
 
-### Optimización con Polars
-Para mitigar las limitaciones de Pandas, el pipeline se ha proyectado para utilizar **Polars**:
-1. **Multithreading:** Polars utiliza todas las unidades de ejecución (cores) disponibles, permitiendo que el *Join* entre eventos y catálogo sea hasta 10-20 veces más rápido que en Pandas.
-2. **Lazy Evaluation:** El uso de `LazyFrame` permite optimizar las consultas antes de ejecutarlas, filtrando datos innecesarios antes de cargarlos en memoria.
-3. **Gestión de Memoria:** Polars utiliza Apache Arrow, lo que reduce drásticamente el consumo de RAM al procesar grandes volúmenes de eventos ($10^6+$).
-
-
-
-### Cuellos de Botella Teóricos a Gran Escala
-Al incrementar el volumen a $10^7$ eventos (10 millones):
-- **Limitación de Almacenamiento:** El formato CSV resulta ineficiente. Se implementará el uso de **Parquet**, que ofrece compresión columnar y reduce el tamaño de almacenamiento en un ~80%.
-- **Latencia de API:** La consulta individual a la USDA se vuelve inviable. La solución es el procesamiento por lotes (*Batch Processing*) o la descarga de snapshots estáticos de la base de datos de la USDA para cruces locales en memoria.
-
-### Complejidad Algorítmica (Big O)
-- **Cruce de Datos (Polars Join):** $O(n/p)$, donde $n$ es el número de eventos y $p$ el número de hilos de ejecución.
-- **Ingeniería de Características:** $O(n)$ gracias a las operaciones vectorizadas nativas de Polars.
+## 4. Análisis de Escalabilidad y Stack de Big Data
+- **Optimización con Polars:** El pipeline utiliza **Polars** para JOINS y transformaciones masivas. Su motor basado en Apache Arrow y multithreading permite procesar los 25k registros en milisegundos, superando las limitaciones de memoria de Pandas.
+- **Cuellos de Botella Teóricos ($10^7$ eventos):**
+    - **Almacenamiento:** El formato CSV se proyecta sustituir por **Parquet** para obtener compresión columnar (~80% de reducción).
+    - **Latencia de API:** Se implementará procesamiento por lotes (*Batch Processing*) para las consultas a la USDA.
+- **Complejidad Algorítmica (Big O):**
+    - **Ingesta y Join:** $O(n/p)$ (donde $p$ es el número de hilos).
+    - **Reducción (PCA):** $O(min(p^3, n \cdot p^2))$ con $p=56$ características.
+    - **Clustering (DBSCAN):** $O(n \log n)$, eficiente para grandes volúmenes gracias a la reducción previa de dimensiones.

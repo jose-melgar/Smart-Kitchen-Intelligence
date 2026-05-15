@@ -1,25 +1,38 @@
-# Diccionario de Datos SKI (Inventory V1)
+# Diccionario de Datos SKI (Consolidado Hito 1, 2 y 3)
 
-Este documento describe la estructura, tipos de datos y restricciones de los campos presentes en el dataset procesado `inventory_v1.csv`, el cual consolida la información transaccional de la cocina con la metadata nutricional de la USDA.
+Este documento describe la estructura completa del dataset `inventory_v1.csv` y los artefactos de características generados.
 
+## 1. Variables Transaccionales (Base Hito 1)
 | Variable | Tipo | Descripción | Formato / Ejemplo |
 | :--- | :--- | :--- | :--- |
-| `event_id` | STRING | Identificador único universal del log de evento. | UUID (e.g., `638b36b2-6`) |
-| `stock_id` | STRING | ID de lote/instancia. Vincula una entrada con sus salidas específicas. | UUID (e.g., `806bd70b`) |
-| `product_id` | INTEGER | Código identificador del producto basado en el catálogo de Instacart. | Numérico (e.g., `24852`) |
-| `event_type` | STRING | Tipo de movimiento de inventario: **IN** (Entrada) o **OUT** (Salida). | Categórico |
-| `timestamp` | DATETIME | Fecha y hora exacta en la que ocurrió el movimiento. | `YYYY-MM-DD HH:MM:SS` |
-| `quantity` | INTEGER | Cantidad de unidades (o peso) involucradas en la acción específica. | Numérico (e.g., `1`, `4`) |
-| `expiry_date` | DATE | Fecha de caducidad del producto calculada según reglas de FoodKeeper. | `YYYY-MM-DD` |
-| `classification` | STRING | Etiqueta lógica de negocio: `Purchase`, `Consumption`, `Waste`, `Forced_Waste`. | Categórico |
-| `product_name` | STRING | Nombre comercial del producto recuperado del Master Data. | Texto (e.g., `Organic Garlic`) |
-| `category` | INTEGER | ID del departamento/categoría original de Instacart. | Numérico (e.g., `4` para Produce) |
-| `nutriscore` | STRING | Calificación de salud calculada u obtenida. | `A`, `B`, `C`, `D`, `E` o `Falta Dato` |
-| `calories_100g` | FLOAT | Contenido energético por cada 100g (Fuente: USDA API). | kcal (e.g., `33.3`) |
-| `proteins_100g` | FLOAT | Contenido de proteínas por cada 100g (Fuente: USDA API). | gramos (e.g., `2.35`) |
-| `carbs_100g` | FLOAT | Contenido de carbohidratos por cada 100g (Fuente: USDA API). | gramos (e.g., `12.1`) |
+| `event_id` | STRING | Identificador único universal del log de evento. | UUID |
+| `stock_id` | STRING | ID de lote. Vincula una entrada con sus salidas. | UUID |
+| `product_id` | INTEGER | Código identificador basado en Instacart. | 24852 |
+| `event_type` | STRING | Tipo de movimiento: **IN** o **OUT**. | Categórico |
+| `timestamp` | DATETIME | Fecha y hora exacta del movimiento. | YYYY-MM-DD HH:MM:SS |
+| `quantity` | INTEGER | Cantidad de unidades involucradas. | 1, 4 |
+| `expiry_date` | DATE | Fecha de caducidad calculada (FoodKeeper). | YYYY-MM-DD |
+| `classification`| STRING | Etiqueta de negocio: `Purchase`, `Consumption`, `Waste`. | Categórico |
+| `nutriscore` | STRING | Calificación de salud (A-E) o "Falta Dato". | A, B, C... |
 
-## Notas Técnicas sobre la Calidad
-1. **Integridad de Lote (`stock_id`):** Esta variable es crítica para el análisis de desperdicio, ya que permite rastrear cuántas unidades de un ingreso específico (`IN`) terminaron en consumo y cuántas en desperdicio (`OUT`).
-2. **Manejo de Nulos:** Las variables nutricionales pueden presentar valores nulos (`NaN`) en casos donde la API de la USDA no proporcionó referencia. Estos campos están marcados para una fase de imputación estadística en el Hito 2.
-3. **Clasificación Automática:** La variable `classification` se genera mediante una función de comparación temporal entre el `timestamp` del evento y la `expiry_date`.
+## 2. Variables Nutricionales y de Características (Hito 2)
+Procesadas mediante **StandardScaler** para la normalización estadística.
+
+| Variable | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `calories_100g` | FLOAT | Contenido energético (Fuente: USDA API). |
+| `proteins_100g` | FLOAT | Contenido de proteínas (Fuente: USDA API). |
+| `carbs_100g` | FLOAT | Contenido de carbohidratos (Fuente: USDA API). |
+| `category_encoded`| FLOAT | **CatBoost Encoding:** Valor denso de la categoría. |
+| `txt_[keyword]` | FLOAT | **TF-IDF:** Importancia de términos (50 dimensiones). |
+| `hour_of_day` | INTEGER | Hora extraída del timestamp (0-23). |
+| `day_of_week` | INTEGER | Día de la semana extraído (0-6). |
+
+## 3. Variables de Segmentación (Hito 3)
+| Variable | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `cluster_label` | INTEGER | Etiqueta del perfil de comportamiento asignada por **DBSCAN Refinado**. |
+
+## 4. Notas de Calidad
+1. **Integridad de Lote:** El `stock_id` es crítico para rastrear qué porcentaje de un lote específico terminó en desperdicio.
+2. **Escalado:** Todas las variables en la fase de características tienen media 0 y varianza 1 para no sesgar el cálculo de distancias en el clustering.

@@ -1,27 +1,29 @@
-# Esquema de Datos Verificado (Star Schema)
+# Esquema de Datos y Arquitectura de Inteligencia
 
-## Arquitectura del Modelo
-El sistema implementa un **Modelo en Estrella (Star Schema)** desnormalizado para optimizar la carga analítica y la preparación de características (feature engineering). Esta estructura permite separar los eventos transaccionales de los metadatos nutricionales.
+## 1. Arquitectura de Almacenamiento (Hito 1)
+El sistema implementa un **Modelo en Estrella (Star Schema)** desnormalizado para optimizar la carga analítica y la preparación de características.
 
-### Tabla de Hechos (Fact Table)
-**`fact_inventory_events`**: Centraliza el flujo transaccional y el ciclo de vida de los productos en la cocina.
-- **PK:** `event_id` (UUID de transacción).
-- **FK:** `product_id` (Vínculo con la dimensión de productos).
-- **Atributos de Lote:** `stock_id` (Identificador único de la instancia física/lote).
-- **Métricas Temporales:** `timestamp` (Precisión de segundos), `expiry_date` (Fecha de vencimiento).
-- **Dimensiones de Negocio:** `event_type` (IN/OUT), `quantity` (Depleción granular), `classification` (Purchase, Consumption, Waste, Forced_Waste).
+### Tabla de Hechos (`fact_inventory_events`)
+Centraliza el flujo transaccional y el ciclo de vida del producto.
+- **PK/FK:** `event_id`, `product_id`, `stock_id`.
+- **Métricas:** `quantity`, `timestamp`, `expiry_date`.
+- **Dimensiones:** `event_type`, `classification`.
 
-### Tabla de Dimensiones (Dimension Table)
-**`dim_products`**: Almacena atributos estáticos y metadatos de salud validados por la USDA.
-- **PK:** `product_id` (Referencia Instacart).
-- **Atributos:** `product_name`, `category` (Department ID), `nutriscore` (Calculado), `calories_100g`, `proteins_100g`, `carbs_100g`.
+### Tabla de Dimensiones (`dim_products`)
+Almacena metadatos de salud validados por la USDA.
+- **Atributos:** `product_name`, `category`, `nutriscore`, `calories_100g`, `proteins_100g`, `carbs_100g`.
 
-## Justificación y Alternativas del Esquema
+## 2. Capa de Transformación y Proyección (Hito 2)
+Evolución hacia una **Matriz Tensorial Densa** para análisis avanzado:
+- **Denormalización Activa:** JOIN entre hechos y dimensiones para crear registros planos multimodales.
+- **Codificación Densa:** Implementación de **CatBoost Encoding** para mantener el esquema compacto y evitar la fragmentación de columnas OHE.
+- **Reducción de Dimensionalidad:** Proyección de 56 dimensiones a 30 componentes mediante **PCA**, reteniendo el 90% de la energía del sistema.
 
-### ¿Por qué Star Schema?
-1. **Eficiencia en Agregaciones:** Minimiza los JOINS necesarios para calcular métricas como el "Desperdicio por Categoría" o "Consumo Proteico Semanal".
-2. **Trazabilidad por stock_id:** La inclusión del `stock_id` en la tabla de hechos permite diferenciar instancias del mismo `product_id`, resolviendo el problema de mezclar productos antiguos con nuevos.
-3. **Proyección de Grafos (Hito 2):** Este esquema facilita la creación de un grafo de co-ocurrencia. Los `product_id` actúan como nodos y los `event_id` compartidos (mismo timestamp de compra) definen las aristas.
+## 3. Capa de Segmentación de Comportamiento (Hito 3)
+Inclusión del **Segmented Dataset**:
+- Los datos reducidos alimentan el modelo **DBSCAN Refinado**. El esquema final incorpora el atributo `cluster_label`, permitiendo que el sistema de recomendaciones consulte grupos de productos con patrones de consumo similares en lugar de items aislados.
 
-### Comparativa con Alternativas
-- **Vs. Modelo Documental:** Evita la redundancia de datos nutricionales pesados. Una actualización en los valores de la USDA solo requiere modificar una fila en `dim_products`, manteniendo la integridad en millones de eventos históricos.
+## 4. Justificación y Alternativas
+- **Vs. Modelo Documental:** El Star Schema evita la redundancia masiva y facilita las agregaciones temporales de Big Data.
+- **Trazabilidad:** La inclusión del `stock_id` resuelve el problema de mezclar productos antiguos con nuevos ingresos, una limitación común en inventarios planos.
+- **Preparación para Clustering:** La matriz densa asegura que el cálculo de distancias euclidianas sea significativo, eliminando el ruido de los ceros estructurales de las matrices dispersas.

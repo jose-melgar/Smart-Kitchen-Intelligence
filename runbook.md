@@ -1,6 +1,6 @@
 # Guía de Ejecución y Reproducibilidad (Runbook) - SKI Project
 
-Este documento detalla los pasos necesarios para reproducir el pipeline de datos completo del proyecto, desde la ingesta de datos crudos hasta la generación de la matriz de características y el análisis de dimensionalidad (Entregas Semanas 3 y 5).
+Este documento detalla los pasos necesarios para reproducir el pipeline de datos completo del proyecto, desde la ingesta de datos crudos hasta la segmentación por clustering (Entregas Semanas 3, 5 y 7).
 
 ## 1. Configuración del Entorno
 
@@ -90,4 +90,42 @@ Ejecuta PCA sobre la matriz de características para analizar su estructura late
 python src/reduction.py
 ```
 *   **Entradas:** `data/features/feature_matrix.npy`, `data/processed/inventory_v1.csv`.
-*   **Salidas:** Gráficos `pca_scree_plot.png` y `pca_scatter_2d.png` en `reports/figures/`, y un resumen en la consola.
+*   **Salidas:** Gráficos `pca_scree_plot.png`, `pca_scatter_2d.png`, `pca_biplot.png` y `tsne_clusters.png` en `reports/figures/`; matriz reducida `data/features/feature_matrix_reduced.npy`.
+
+## 4. Clustering y Segmentación de Comportamiento (Semana 7 / Hito 3)
+
+Con la matriz reducida lista, se ejecutan los dos scripts de clustering en secuencia. El primero realiza un benchmark competitivo entre tres paradigmas; el segundo refina los hiperparámetros del mejor candidato para obtener el modelo definitivo.
+
+### Paso 7: Benchmark de Paradigmas de Clustering (Exploración)
+Evalúa K-Means (k=2 a 10), DBSCAN (barrido de eps y min_samples) y GMM (2 a 10 componentes). Imprime en consola el cuadro comparativo de Silhouette Score y guarda las etiquetas del modelo ganador preliminar.
+
+```bash
+python src/clustering.py
+```
+*   **Entrada:** `data/features/feature_matrix_reduced.npy`
+*   **Salidas:**
+    *   `data/features/cluster_labels.npy` — etiquetas del modelo ganador de la fase exploratoria.
+    *   Cuadro comparativo impreso en consola (K-Means vs DBSCAN vs GMM).
+
+> **Resultado esperado:** DBSCAN con Silhouette ≈ 0.65 supera a K-Means (≈ 0.37) y GMM (≈ 0.20). El script declara el ganador automáticamente.
+
+### Paso 8: Refinamiento del Modelo Ganador (DBSCAN)
+Descarta GMM formalmente, extiende la búsqueda de K-Means hasta k=25 para verificar que no fue un mínimo local, evalúa HDBSCAN y realiza un barrido granular alrededor del óptimo de DBSCAN (eps ≈ 2.5). Guarda las etiquetas definitivas.
+
+```bash
+python src/clustering_refinement.py
+```
+*   **Entrada:** `data/features/feature_matrix_reduced.npy`
+*   **Salidas:**
+    *   `data/features/cluster_labels_refined.npy` — etiquetas finales del modelo DBSCAN optimizado (eps=2.7, min_samples=15).
+    *   Cuadro de decisión final impreso en consola.
+
+> **Resultado esperado:** DBSCAN refinado (eps=2.7, min_samples=15) obtiene Silhouette = 0.6549, identifica ~38 clusters y reduce el ruido al 0.28%. Este artefacto es el **Single Source of Truth** para la fase de recomendación.
+
+### Resumen de artefactos generados por hito
+
+| Hito | Script(s) | Artefacto principal |
+| :--- | :--- | :--- |
+| Semana 3 | `extract_patterns` → `simulation` → `ingestion` → `preprocessing` | `data/processed/inventory_v1.csv` |
+| Semana 5 | `features` → `reduction` | `data/features/feature_matrix_reduced.npy` |
+| Semana 7 | `clustering` → `clustering_refinement` | `data/features/cluster_labels_refined.npy` |

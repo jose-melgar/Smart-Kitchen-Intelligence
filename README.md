@@ -8,7 +8,8 @@
 | Feature engineering + Reducción dimensional (PCA/t-SNE) | 5 | ✅ Completado |
 | Clustering y segmentación de comportamiento | 7 | ✅ Completado |
 | Análisis de grafos de co-ocurrencia | 9 | 🔜 Próximo |
-| Motor de recomendación híbrido | 11–13 | 🔜 Pendiente |
+| Recomendador (contenido + CF + híbrido) | 11 | ✅ Completado |
+| Motor de recomendación híbrido extendido | 13 | 🔜 Pendiente |
 
 ## 1. Descripción del Proyecto
 
@@ -45,6 +46,15 @@ python src/reduction.py          # PCA + t-SNE → feature_matrix_reduced.npy + 
 # 6. Clustering y segmentación (Hito 3)
 python src/clustering.py         # Benchmark K-Means / DBSCAN / GMM → cluster_labels.npy
 python src/clustering_refinement.py  # Refinamiento DBSCAN → cluster_labels_refined.npy
+
+# 7. Recomendador (Hito 4 — Semana 11)
+python src/build_R.py                 # 4 encodings de R sobre sesiones de restock/kitchen
+python src/recommender_content.py     # TF-IDF del catálogo + perfil de household
+python src/normalizations.py          # raw, mean-center, log1p, tfidf_R, l2_row
+python src/recommender_cf.py          # ítem-ítem + ALS implícito + lambda sweep
+python src/cold_start.py              # popularidad / partial_cf / content / mixed
+python src/recommender_hybrid.py      # mixed: contenido + CF + expiry
+python src/generate_hito4_figures.py  # figuras del informe Hito 4
 ```
 
 Para instrucciones detalladas de cada paso (credenciales, entradas/salidas esperadas y resultados), consulte el [**Runbook de Ejecución (`runbook.md`)**](./runbook.md).

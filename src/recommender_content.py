@@ -241,20 +241,13 @@ def main() -> None:
     print(rec.to_string(index=False))
 
 
-if __name__ == "__main__":
-    main()
-"\n[content] Demo hold-out: ocultando {len(hidden)}/{len(hh0_out)} productos al household 0.")
-
-    df_visible = df[~((df["household_id"] == 0) & (df["product_id"].isin(hidden)))]
-    profile = build_household_profile(0, df_visible, catalog, X)
-    sims = score_catalog(profile, X)
     consumed_visible = set(
-        df_visible[(df_visible["household_id"] == 0) &
-                   (df_visible["event_type"] == "OUT")]["product_id"].unique()
-    )
+            df_visible[(df_visible["household_id"] == 0)
+                    & (df_visible["event_type"] == "OUT")]["product_id"].unique()
+        )
     rec = top_n(sims, catalog, exclude_ids=consumed_visible, n=5)
     rec["hit"] = rec["product_id"].isin(hidden)
-    print(f"[content] Top-5 (excluyendo visibles) — 'hit'=acertó un producto oculto:")
+    print("[content] Top-5 (excluyendo visibles) — 'hit'=acertó un producto oculto:")
     print(rec.to_string(index=False))
 
 

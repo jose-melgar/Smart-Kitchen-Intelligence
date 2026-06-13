@@ -181,7 +181,8 @@ def main() -> None:
 
     result.to_csv(REC_DIR / "hybrid_top10_hh0.csv", index=False)
     with open(REC_DIR / "hybrid_meta.json", "w") as f:
-        json.dump({"weights": {"w_C": 0.35, "w_F": 0.45, "w_E": 0.20},
+        json.dump({"task_framing": "Masked Basket Completion (Cloze Task Style)",
+                   "weights": {"w_C": 0.35, "w_F": 0.45, "w_E": 0.20},
                    "reference_date": str(ref_date)}, f, indent=2)
 
 

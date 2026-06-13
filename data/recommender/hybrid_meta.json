@@ -1,4 +1,5 @@
 {
+  "task_framing": "Masked Basket Completion (Cloze Task Style)",
   "weights": {
     "w_C": 0.35,
     "w_F": 0.45,

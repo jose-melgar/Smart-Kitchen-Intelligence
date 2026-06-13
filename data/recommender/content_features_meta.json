@@ -1,0 +1,29 @@
+{
+  "representation": "hybrid_tfidf_text + scaled_numeric",
+  "text_block": {
+    "n_tokens": 78,
+    "fields": [
+      "product_name",
+      "category",
+      "classification"
+    ]
+  },
+  "numeric_block": {
+    "columns": [
+      "calories_100g",
+      "proteins_100g",
+      "carbs_100g",
+      "nutri_ord"
+    ],
+    "scaler": "MinMax[0,1]",
+    "nutriscore_encoding": {
+      "a": 0.0,
+      "b": 1.0,
+      "c": 2.0,
+      "d": 3.0,
+      "e": 4.0
+    },
+    "numeric_weight": 0.5
+  },
+  "note": "Las macros continuas y el nutriscore ordinal entran como ejes num\u00e9ricos ordenados (no tokens ortogonales), preservando orden e intervalo; el vector completo se L2-normaliza para que cosine == dot product."
+}

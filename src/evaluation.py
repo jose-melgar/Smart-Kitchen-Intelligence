@@ -71,29 +71,34 @@ def precision_recall_map_at_k(scores: np.ndarray,
     s = scores.copy()
     s[rows, cols] = -np.inf
 
-    precisions, recalls, aps = [], [], []
+    precisions, recalls, aps, nprecs, truth_sizes = [], [], [], [], []
     rec_set = set()
     for u, truth in test_by_user.items():
         topk_idx = np.argpartition(-s[u], k)[:k]
         topk_idx = topk_idx[np.argsort(-s[u][topk_idx])]
         hits = [i for i in topk_idx if i in truth]
+        ceil = max(1, min(k, len(truth)))  # techo de aciertos posibles en top-k
         precisions.append(len(hits) / k)
         recalls.append(len(hits) / max(1, len(truth)))
+        nprecs.append(len(hits) / ceil)    # precisión normalizada por techo
+        truth_sizes.append(len(truth))
         # MAP@k
         ap, n_hit = 0.0, 0
         for rank, i in enumerate(topk_idx, start=1):
             if i in truth:
                 n_hit += 1
                 ap += n_hit / rank
-        aps.append(ap / max(1, min(k, len(truth))))
+        aps.append(ap / ceil)
         rec_set.update(topk_idx.tolist())
     coverage = len(rec_set) / scores.shape[1]
     return {
         "precision@k": float(np.mean(precisions)),
         "recall@k": float(np.mean(recalls)),
+        "nprecision@k": float(np.mean(nprecs)),
         "map@k": float(np.mean(aps)),
         "coverage@k": float(coverage),
         "n_eval_sessions": len(test_by_user),
+        "avg_truth_size": float(np.mean(truth_sizes)),
     }
 
 
@@ -202,8 +207,8 @@ def main() -> None:
         # Inyección analítica de la estrategia de camuflaje para el log
         display_name = f"{name} (Sesgo Basal)" if name == "popularity" else name
         print(f"  {display_name:<26} prec@5={m['precision@k']:.4f}  "
-              f"rec@5={m['recall@k']:.4f}  map@5={m['map@k']:.4f}  "
-              f"cov@5={m['coverage@k']:.4f}")
+              f"rec@5={m['recall@k']:.4f}  nprec@5={m['nprecision@k']:.4f}  "
+              f"map@5={m['map@k']:.4f}  cov@5={m['coverage@k']:.4f}")
     pd.DataFrame(rows).to_csv(REC / "evaluation_table.csv", index=False)
     with open(REC / "evaluation_summary.json", "w") as f:
         json.dump({
@@ -211,7 +216,17 @@ def main() -> None:
                 "unit": "restock_session",
                 "split": "Masked Basket Completion Task (Cloze Task Style) - Random 20% hold-out, seed=42",
                 "candidate_pool": "all 50 catalog products, minus train-seen of the session",
-                "metrics": ["precision@5", "recall@5", "map@5", "coverage@5"]
+                "masking_ratio": "20% of non-zero interactions hidden -> small truth set (~1-2)",
+                "metrics": ["precision@5", "recall@5", "nprecision@5", "map@5", "coverage@5"]
+            },
+            "cross_section_comparability": {
+                "note": ("El candidate pool (50 productos menos vistos) es IDÉNTICO al del "
+                         "experimento de Cold-Start (cold_start.py). La diferencia de escala en "
+                         "precision@5 cruda entre secciones se debe SOLO a la tasa de "
+                         "enmascaramiento (20% aquí vs ~85-90% en cold-start), que cambia el "
+                         "tamaño del truth set y por tanto el techo de precision@5. Las métricas "
+                         "nprecision@5 y map@5 (normalizadas por min(k,|truth|)) son invariantes "
+                         "a ese techo y permiten comparar ambas secciones de forma justa.")
             },
             "analysis_notes": {
                 "popularity_paradox_defense": "La ventaja numerica en Precision de la popularidad pura constituye un 'Sesgo de Consumo Basal' provocado por el 'Efecto de Productos Ubicuos Estructurales' del simulador stocastico, representando una patologia del entorno sinteticoy no una ventaja predictiva real. Se aplica un criterio estricto de 'Penalizacion por Trivialidad': la popularidad sufre un colapso total de diversidad (22% de Catalog Coverage), mientras que el modelo Hibrido garantiza un 100% de Catalog Coverage, activando la señal de descubrimiento y mitigacion de desperdicio del inventario vivo en la cocina."

@@ -176,16 +176,24 @@ El cluster de comportamiento entregado en el Hito 3 (DBSCAN $\varepsilon = 2.7$,
 % ============================================================
 \section{Recomendador Basado en Contenido}
 
-\subsection{Definición del documento por producto}
-En el ejemplo \textit{Pachamix Lyrics} del curso, cada documento es la letra de una canción. En SKI no existe texto libre asociado al producto, por lo que se construye un \textbf{pseudo-documento} concatenando los atributos descriptivos del producto en un único string tokenizable:
+\subsection{Definición de la representación híbrida del producto}
+En el ejemplo \textit{Pachamix Lyrics} del curso, cada documento es la letra de una canción. En SKI no existe texto libre asociado al producto, por lo que cada ítem se representa con un \textbf{vector híbrido} de dos bloques: un bloque \emph{textual} TF-IDF construido sobre los atributos genuinamente nominales del producto, y un bloque \emph{numérico} con las variables físicas que poseen orden e intervalo (macronutrientes y nutriscore):
 
 \begin{lstlisting}[style=pystyle]
+# Bloque textual (solo atributos nominales, sin orden interno)
 doc = product_name + " " +
-      f"category_{category} class_{classification} nutri_{nutriscore} " +
-      f"{cal_token} {prot_token} {carb_token}"
+      f"category_{category} class_{classification}"
+X_text = TfidfVectorizer().fit_transform(docs)          # filas L2
+
+# Bloque numerico (variables continuas/ordinales escaladas)
+num = [calories_100g, proteins_100g, carbs_100g, nutri_ord]  # nutri A->E = 0..4
+X_num = MinMaxScaler().fit_transform(num) * numeric_weight   # una dim por variable
+
+# Concatenacion y L2-normalizacion final  (cosine == dot product)
+X = l2_normalize( hstack([X_text, X_num]) )
 \end{lstlisting}
 
-Los \code{cal\_token}, \code{prot\_token} y \code{carb\_token} son discretizaciones (\textit{low/mid/high}) de las macros nutricionales, lo que convierte variables continuas en tokens que TF-IDF puede ponderar. El catálogo final contiene 50 documentos con un vocabulario de \metric{93 tokens}.
+A diferencia de la versión inicial, los macronutrientes \textbf{ya no se discretizan} en tokens \code{cal\_low}/\code{cal\_mid}/\code{cal\_high}: cada macro y el nutriscore ocupan \textbf{una sola dimensión numérica ordenada}, de modo que la distancia respeta el intervalo físico real (ver Sección~\ref{sec:ortogonalidad}). El catálogo final contiene 50 ítems con un espacio de \metric{82 dimensiones} (\metric{78 tokens} textuales + \metric{4 dimensiones} numéricas), con peso relativo del bloque numérico \code{numeric\_weight}~$=0.5$.
 
 \subsection{Formulación matemática de TF-IDF}
 \label{sec:tfidf}
@@ -199,7 +207,7 @@ Para defender el método ante una pregunta directa del profesor, se explicita la
 \mathbf{x}_d &= \frac{\text{tfidf}(\cdot, d)}{\|\text{tfidf}(\cdot, d)\|_2}\quad\text{(normalización L2)}
 \end{align}
 
-donde $N$ es el número de documentos y $\text{df}(t)$ el número de documentos donde aparece el término $t$. La normalización L2 implica que el dot product entre dos vectores TF-IDF coincide con la \textbf{similitud coseno}. La función IDF penaliza tokens ubicuos (mayor $\text{df}$, menor IDF) y premia tokens discriminantes. En nuestro catálogo, los seis tokens con menor IDF observados son ``\code{class\_purchase}'' ($1.13$), ``\code{category\_4}'' ($1.22$), ``\code{prot\_low}'' ($1.35$), ``\code{organic}'' ($1.44$), ``\code{carb\_mid}'' ($1.50$) y ``\code{cal\_low}'' ($1.67$); los más informativos son nombres específicos como ``\code{cilantro}'', ``\code{zucchini}'' y ``\code{tomato}'' con IDF $\approx 4.24$ (Figura~\ref{fig:tfidf}).
+donde $N$ es el número de documentos y $\text{df}(t)$ el número de documentos donde aparece el término $t$. La normalización L2 implica que el dot product entre dos vectores coincide con la \textbf{similitud coseno}. La función IDF penaliza tokens ubicuos (mayor $\text{df}$, menor IDF) y premia tokens discriminantes. Tras eliminar los tokens de macros discretizadas, los tokens textuales con menor IDF observados son ``\code{class\_purchase}'' ($1.13$), ``\code{category\_4}'' ($1.22$) y ``\code{organic}'' ($1.44$); los más informativos son nombres específicos como ``\code{cilantro}'', ``\code{zucchini}'' y ``\code{tomato}'' con IDF $\approx 4.24$ (Figura~\ref{fig:tfidf}). Las cuatro dimensiones numéricas (macros + nutriscore) se añaden tras este bloque y no participan del cálculo de IDF.
 
 \begin{figure}[H]
     \centering
@@ -218,12 +226,19 @@ El perfil del household $u$ se construye como promedio ponderado de los vectores
 
 Esto es exactamente la operación \textit{group by household} sobre los vectores del catálogo. La recomendación top-$N$ se obtiene rankeando por similitud coseno $\text{score}(u, p) = \mathbf{p}_u \cdot \mathbf{x}_p$, excluyendo productos ya consumidos visibles y aplicando un \code{group by category} (máximo 1 por categoría dentro del top) para evitar saturar la salida con un mismo tipo de producto.
 
-\paragraph{Validación cualitativa (hold-out 20\%).} Para el household 0, ocultando aleatoriamente 10/50 productos de su historial, el sistema recupera $4$ de las $5$ recomendaciones como aciertos (Strawberries, Half\&Half, Spring Water, Hummus), lo que ilustra que el perfil TF-IDF captura preferencias incluso sin observar historial colaborativo.
+\paragraph{Validación cualitativa (hold-out 20\%).} Para el household 0, ocultando aleatoriamente 10/50 productos de su historial, las recomendaciones del top resultan todas aciertos sobre el conjunto oculto (Parsley, Half\&Half, Hummus, Spring Water), lo que ilustra que el perfil de contenido híbrido captura preferencias incluso sin observar historial colaborativo.
 
-\subsection{Limitación Espacial de la Representación y Suposición de Ortogonalidad}
-Se reconoce como una limitación matemática intrínseca en esta primera capa la tokenización discreta de las variables continuas de la API de la USDA (\code{cal\_low}, \code{prot\_mid}, etc.). Al transformar los macronutrientes en tokens de texto independientes dentro del pseudo-documento, el cálculo de similitud coseno subyacente en TF-IDF trata a estos tokens como dimensiones estrictamente ortogonales en el espacio vectorial. 
+\subsection{Continuidad e Intervalo: corrección de la suposición de ortogonalidad}
+\label{sec:ortogonalidad}
+La primera versión de esta capa discretizaba las variables continuas de la API de la USDA en tokens (\code{cal\_low}, \code{cal\_mid}, \code{cal\_high}, etc.). Al transformar los macronutrientes en tokens de texto independientes dentro del pseudo-documento, la similitud coseno subyacente los trataba como dimensiones estrictamente \textbf{ortogonales}: el modelo asumía que la distancia entre \code{cal\_low} y \code{cal\_mid} era idéntica a la distancia entre \code{cal\_low} y \code{cal\_high}, perdiendo la noción de \emph{intervalo} y \emph{orden} de las variables físicas nutricionales.
 
-Matemáticamente, el modelo asume que la distancia métrica entre \code{cal\_low} y \code{cal\_mid} es idéntica a la distancia entre \code{cal\_low} y \code{cal\_high}, perdiendo la noción de intervalo y orden de las variables físicas nutricionales originales. Se establece como deuda técnica para futuros hitos del sistema la transición hacia un esquema de \textit{Target Encoding} continuo no lineal o un recomendador de dos torres (\textit{Two-Tower Neural Networks}) para preservar las distancias físicas continuas en la capa semántica.
+\paragraph{Corrección aplicada.} En esta versión las macronutricionales y el nutriscore se retiran del bloque de tokens y se reincorporan como \textbf{ejes numéricos ordenados}. Cada variable física ($\text{calories}$, $\text{proteins}$, $\text{carbs}$) ocupa una única dimensión escalada a $[0,1]$ con \code{MinMaxScaler}, y el nutriscore se codifica como un eje ordinal $A\!\to\!E \equiv \{0,1,2,3,4\}$. El vector de cada producto es entonces
+
+\[
+\mathbf{x}_p \;=\; \mathrm{L2}\!\Big(\big[\, \underbrace{\mathbf{x}^{\text{TF-IDF}}_p}_{\text{texto nominal}} \;\big\Vert\; \underbrace{\beta\cdot \phi_{\text{MinMax}}(\text{macros}_p,\ \text{nutri}_p)}_{\text{bloque numerico, }\beta=0.5} \,\big]\Big),
+\]
+
+donde $\Vert$ denota concatenación y $\mathrm{L2}(\cdot)$ la normalización por fila final que mantiene la equivalencia $\text{cosine} = $ dot product. Con esta representación, la distancia en la dimensión de calorías es proporcional a la diferencia real de la variable: $|\,\text{cal}{=}180 - \text{cal}{=}190\,| \ll |\,\text{cal}{=}50 - \text{cal}{=}900\,|$, recuperándose orden e intervalo que la tokenización había destruido. El peso $\beta$ regula la influencia del bloque numérico frente al textual sin que ninguno domine. El esquema es compatible con futuras extensiones (\textit{target encoding} no lineal o recomendador de dos torres) sin reintroducir la ortogonalidad.
 
 % ============================================================
 %   4. CONSTRUCCIÓN Y NORMALIZACIÓN DE R
@@ -397,22 +412,22 @@ Se distinguen dos escenarios de cold-start:
 
 \subsection{Sesión cold}
 
-Se evalúan cuatro estrategias sobre 400 sesiones muestreadas:
-\textit{(i)} popularidad pura, \textit{(ii)} \textbf{partial CF} (k-NN ítem-ítem promediado sobre los seeds), \textit{(iii)} content-only (similitud coseno por TF-IDF promediado sobre los seeds), y \textit{(iv)} mixed (popularidad $\alpha$ + contenido $(1-\alpha)$ con $\alpha = 0.4$).
+Se evalúan cuatro estrategias sobre el \textbf{universo completo de sesiones elegibles} (todas las sesiones con $\ge$ seed$+1$ productos; ya no un submuestreo aleatorio de 400, para estandarizar el universo de prueba):
+\textit{(i)} popularidad pura, \textit{(ii)} \textbf{partial CF} (k-NN ítem-ítem promediado sobre los seeds), \textit{(iii)} content-only (similitud coseno de contenido promediada sobre los seeds), y \textit{(iv)} mixed (popularidad $\alpha$ + contenido $(1-\alpha)$ con $\alpha = 0.4$). El candidate pool es \emph{idéntico} al de la evaluación global (Sección~\ref{sec:offline}): catálogo completo de 50 productos menos los seeds conocidos.
 
 \begin{table}[H]
 \centering
-\caption{precision@5 por estrategia y por número de seeds (sesión cold).}
+\caption{Métricas por estrategia (sesión cold). Se reportan precision@5 cruda (1 y 2 seeds) y, para el caso de 1 seed, las métricas normalizadas \code{nprec@5}~$=$~hits$/\min(k,|\text{truth}|)$ y \code{map@5}, comparables con la evaluación global.}
 \label{tab:cold}
-\begin{tabular}{lrr}
+\begin{tabular}{lrrrr}
 \toprule
-Estrategia & 1 seed & 2 seeds \\
+Estrategia & prec@5 (1s) & prec@5 (2s) & nprec@5 (1s) & MAP@5 (1s) \\
 \midrule
-popularity   & $0.1710$ & $0.1520$ \\
+popularity   & $0.1725$ & $0.1545$ & $0.1767$ & $0.0990$ \\
 \rowcolor{green!12}
-\textbf{partial\_cf}   & $\mathbf{0.2020}$ & $\mathbf{0.1955}$ \\
-content\_only & $0.1570$ & $0.1460$ \\
-mixed         & $0.1605$ & $0.1425$ \\
+\textbf{partial\_cf}   & $\mathbf{0.1941}$ & $\mathbf{0.1850}$ & $\mathbf{0.1976}$ & $\mathbf{0.1163}$ \\
+content\_only & $0.1580$ & $0.1395$ & $0.1609$ & $0.0835$ \\
+mixed         & $0.1638$ & $0.1458$ & $0.1680$ & $0.0910$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -424,7 +439,7 @@ mixed         & $0.1605$ & $0.1425$ \\
     \label{fig:cold}
 \end{figure}
 
-\paragraph{Decisión.} Se elige \winner{partial CF} porque supera a popularidad pura en $+18\%$ (1 seed) y $+29\%$ (2 seeds). \emph{Los datos lo respaldan}: la mejora se mantiene cuando el número de seeds varía, lo que descarta que sea efecto del azar.
+\paragraph{Decisión.} Se elige \winner{partial CF} porque supera a popularidad pura en $+12.5\%$ (1 seed) y $+19.7\%$ (2 seeds), y lidera también en las métricas normalizadas \code{nprec@5} y \code{MAP@5}. \emph{Los datos lo respaldan}: la mejora se mantiene al variar el número de seeds y al cambiar de métrica, lo que descarta que sea efecto del azar o del techo de \code{precision@5}.
 
 \subsection{Producto cold}
 
@@ -511,7 +526,7 @@ El pipeline analítico se rige por las siguientes especificaciones técnicas de 
     \item \textbf{Unidad}: \code{R\_restock\_bin}, $1{,}177$ sesiones operacionales $\times$ $50$ productos únicos del catálogo.
     \item \textbf{Split y Task Framing}: 20\% de las interacciones no-cero se enmascararon aleatoriamente utilizando una semilla fija $42$. 
     \item \textbf{Hold-out efectivo}: $2{,}094$ interacciones ocultadas distribuidas a lo largo de $968$ sesiones válidas de evaluación.
-    \item \textbf{Métricas}: precision@5, recall@5, MAP@5 y catalog coverage@5.
+    \item \textbf{Métricas}: precision@5, recall@5, nprec@5 (precisión normalizada por techo, $=$ hits$/\min(k,|\text{truth}|)$), MAP@5 y catalog coverage@5.
     \item \textbf{Implementación}: \code{src/evaluation.py}, orquestado como un script modular ejecutable de forma independiente de la memoria oculta de Jupyter.
 \end{itemize}
 
@@ -525,31 +540,38 @@ El sistema SKI en este hito no está planteado como un predictor secuencial cron
 \centering
 \caption{Evaluación consolidada de los cuatro sistemas sobre el mismo hold-out.}
 \label{tab:consol}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrrrr}
 \toprule
-Sistema & precision@5 & recall@5 & MAP@5 & coverage@5 \\
+Sistema & precision@5 & recall@5 & nprec@5 & MAP@5 & coverage@5 \\
 \midrule
-popularity     (baseline trivial) & $\mathbf{0.0508}$ & $\mathbf{0.1167}$ & $0.0539$ & $0.2200$ \\
-content\_tfidf (baseline content) & $0.0475$ & $0.1067$ & $0.0518$ & $0.9400$ \\
-cf\_als         (stronger, $\lambda{=}1.0$) & $0.0467$ & $0.1125$ & $\mathbf{0.0549}$ & $\mathbf{1.0000}$ \\
-hybrid          (stronger, mixed) & $0.0455$ & $0.1106$ & $0.0539$ & $\mathbf{1.0000}$ \\
+popularity     (baseline trivial) & $\mathbf{0.0508}$ & $0.1167$ & $0.1174$ & $0.0539$ & $0.2200$ \\
+content\_tfidf (baseline content) & $0.0450$ & $0.1037$ & $0.1039$ & $0.0511$ & $0.8400$ \\
+cf\_als         (stronger, $\lambda{=}1.0$) & $0.0467$ & $0.1125$ & $0.1131$ & $0.0549$ & $\mathbf{1.0000}$ \\
+\rowcolor{green!12}
+hybrid          (stronger, mixed) & $0.0494$ & $\mathbf{0.1177}$ & $\mathbf{0.1181}$ & $\mathbf{0.0574}$ & $\mathbf{1.0000}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \paragraph{Lectura técnica y Efecto de Productos Ubicuos Estructurales.} 
-La comparación honesta plasmada en la Tabla~\ref{tab:consol} arroja una observación inicialmente contraintuitiva: el sistema de popularidad pura (baseline trivial) exhibe un rendimiento sumamente competitivo en \code{precision@5} ($0.0508$) y \code{recall@5} ($0.1167$) frente al recomendador colaborativo avanzado y al modelo híbrido ($0.0455$ y $0.1106$, respectivamente). El equipo determina que esta aparente ventaja no responde a una superioridad predictiva real, sino a una propiedad patológica del entorno sintético parametrizado, denominada \textbf{Sesgo de Consumo Basal}. 
+La comparación honesta plasmada en la Tabla~\ref{tab:consol} muestra que el sistema de popularidad pura (baseline trivial) solo conserva una ventaja marginal en \code{precision@5} ($0.0508$ frente a $0.0494$ del híbrido, una diferencia de apenas $0.0014$). En el resto de métricas el modelo \textbf{híbrido domina}: lo supera en \code{recall@5} ($0.1177$ vs $0.1167$), en \code{nprec@5} ($0.1181$ vs $0.1174$) y en \code{MAP@5} ($0.0574$ vs $0.0539$). El equipo determina que la pequeña ventaja residual de la popularidad en \code{precision@5} no responde a una superioridad predictiva real, sino a una propiedad patológica del entorno sintético parametrizado, denominada \textbf{Sesgo de Consumo Basal}.
 
-Debido al \textbf{Efecto de Productos Ubicuos Estructurales} inyectado por el simulador estocástico, un conjunto cerrado de productos básicos de alta rotación (v.g., leche, plátanos, manzanas) aparece de manera redundante en la gran mayoría de las canastas analizadas. En consecuencia, un recomendador ciego que apunte siempre a los elementos más vendidos atinará con alta frecuencia matemática en el hold-out. Sin embargo, este enfoque adolece de un colapso crítico en la diversidad del sistema, contrayendo el \code{coverage@5} a un magro $0.2200$ ($22\%$) y restringiendo las sugerencias a solo 11 de los 50 productos disponibles. Por el contrario, la factorización matricial de ALS y el modelo híbrido rompen este sesgo estructural, forzando la salida y el descubrimiento de todo el inventario al alcanzar un \metric{$100\%$ de catalog coverage} e incrementando el MAP@5 a un valor óptimo de $0.0549$, demostrando que ordenan de mejor manera los aciertos cualitativos dentro del corte del top-5.
+Debido al \textbf{Efecto de Productos Ubicuos Estructurales} inyectado por el simulador estocástico, un conjunto cerrado de productos básicos de alta rotación (v.g., leche, plátanos, manzanas) aparece de manera redundante en la gran mayoría de las canastas analizadas. En consecuencia, un recomendador ciego que apunte siempre a los elementos más vendidos atinará con alta frecuencia matemática en el hold-out. Sin embargo, este enfoque adolece de un colapso crítico en la diversidad del sistema, contrayendo el \code{coverage@5} a un magro $0.2200$ ($22\%$) y restringiendo las sugerencias a solo 11 de los 50 productos disponibles. Por el contrario, la factorización matricial de ALS y el modelo híbrido rompen este sesgo estructural, forzando la salida y el descubrimiento de todo el inventario al alcanzar un \metric{$100\%$ de catalog coverage} y, además, alcanzando el mejor MAP@5 del estudio ($0.0574$ en el híbrido), lo que demuestra que ordenan de mejor manera los aciertos cualitativos dentro del corte del top-5.
 
 \paragraph{Decisión de Sistema de Producción y Penalización por Trivialidad.} 
 En el contexto de \textit{Smart Kitchen Intelligence}, los objetivos centrales de negocio son el descubrimiento de inventario (sugerir e incentivar la rotación de productos que el household no acostumbra comprar por mero hábito repetitivo) y la mitigación del desperdicio de unidades perecederas vivas. Bajo estas directrices operacionales, el baseline de popularidad pura es completamente inadmisible para producción masiva, ya que anula la capacidad de gestionar una despensa inteligente y variada. El equipo introduce el concepto de \textbf{Penalización por Trivialidad} para descartar formalmente modelos analíticamente ciegos que condenen al $78\%$ restante del catálogo a la invisibilidad permanente dentro de la aplicación. 
 
-Se elige de forma definitiva el sistema \winner{híbrido} para su despliegue en producción, asumiendo conscientemente un costo analítico menor al $0.53\%$ en la precisión absoluta del hold-out a cambio de obtener cobertura completa del catálogo (\metric{$100\%$ de catalog coverage}) y activar de forma nativa la señal de urgencia por expiración física ($S_{\text{exp}}$).
+Se elige de forma definitiva el sistema \winner{híbrido} para su despliegue en producción, asumiendo conscientemente un costo analítico menor a $0.15$ puntos porcentuales en la \code{precision@5} absoluta del hold-out (que de hecho se compensa con un mejor \code{recall@5}, \code{nprec@5} y \code{MAP@5}) a cambio de obtener cobertura completa del catálogo (\metric{$100\%$ de catalog coverage}) y activar de forma nativa la señal de urgencia por expiración física ($S_{\text{exp}}$).
 
-\paragraph{Resolución de la Inconsistencia de Escalas (Global vs. Cold-Start).} El equipo aclara una aparente contradicción numérica entre las escalas métricas reportadas en este reporte global (donde la precisión máxima oscila entre el 4.5\% y 5.0\%) y los resultados del sub-experimento de Cold-Start de Sesión expuestos en la Sección 6 (donde \code{partial\_cf} registra una precisión del 20.20%). Esta discrepancia no representa un error de consistencia analítica, sino un efecto matemático de la definición del \textit{Candidate Pool}. 
+\paragraph{Resolución de la Inconsistencia de Escalas (Global vs. Cold-Start).} El equipo aclara la aparente contradicción numérica entre la \code{precision@5} máxima del reporte global ($\approx 5.1\%$) y la del sub-experimento de Cold-Start de Sesión de la Sección~\ref{sec:offline} (donde \code{partial\_cf} alcanza $\approx 19.4\%$). \textbf{El candidate pool es idéntico en ambos casos} (los 50 productos del catálogo menos los ítems conocidos de la sesión, Sección~\ref{sec:candidate-pool}), de modo que la diferencia \emph{no} proviene de una contracción del pool. La causa es estrictamente la \textbf{tasa de enmascaramiento}, que determina el tamaño del \emph{truth set} y, con ello, el \emph{techo} de la métrica.
 
-En la evaluación global consolidada, el recomendador se enfrenta de forma irrestricta a todo el catálogo extendido (50 productos menos semillas) sobre el universo total de las 968 sesiones. Por el contrario, el experimento controlado de Cold-Start restringe el entorno predictivo a sesiones simuladas con únicamente $\le 2$ semillas fijas sobre households específicos, provocando una contracción severa en las dimensiones del pool y elevando geométricamente el \textit{hit rate} analítico de las co-ocurrencias directas evaluadas por el algoritmo de k-NN ítem-ítem. Ambos sub-experimentos guardan rigurosa coherencia interna dentro de sus respectivos entornos operacionales.
+Formalmente, con $k=5$ el máximo de aciertos posibles en el top-$k$ es $\min(k, |\text{truth}|)$, por lo que el techo de \code{precision@5} es $\min(5,|\text{truth}|)/5$:
+\begin{itemize}
+    \item \textbf{Global}: se enmascara el $20\%$ de las interacciones, dejando un truth set pequeño ($\approx 2.16$ ítems en promedio: $2{,}094$ ocultos sobre $968$ sesiones). El techo medio de \code{precision@5} es $\approx 2.16/5 \approx 0.43$, y el valor observado ($\approx 0.05$) es coherente con él.
+    \item \textbf{Cold-start}: por definición solo se conservan $1$--$2$ seeds, enmascarando $\approx 85$--$90\%$ de la canasta y dejando un truth set grande ($\approx 7.72$ ítems con 1 seed). El techo de \code{precision@5} sube a $1.0$, por lo que un mismo nivel de aciertos produce una \code{precision@5} cruda mecánicamente mayor.
+\end{itemize}
+
+Para hacer ambas secciones \textbf{directamente comparables} se reporta en las dos la métrica normalizada por techo \code{nprec@5}~$=$~hits$/\min(k,|\text{truth}|)$ y \code{MAP@5} (invariantes a la tasa de enmascaramiento). Bajo estas métricas la brecha se reduce de $\sim$4$\times$ en \code{precision@5} cruda a $\sim$1.7$\times$ (p.~ej.\ \code{nprec@5}: global $0.117$ en popularidad vs cold-start $0.198$ en \code{partial\_cf}). El residuo restante \emph{no} es un error de estandarización: refleja que reconstruir muchos ítems a partir de una semilla de alta señal es una tarea genuinamente distinta —y en términos de \code{precision@k} a $k$ fijo, más favorable— que recuperar $1$--$2$ ítems específicos de un historial denso. En suma, ambos experimentos comparten protocolo y pool; la diferencia de escala es un efecto de techo plenamente caracterizado, no una inconsistencia analítica.
 
 \subsection{Data alignment del híbrido}
 \label{sec:alignment}
@@ -593,8 +615,6 @@ Sesión $u$ & \#train\_seen & \#truth & hits@5 \\
 \subsection{Failure cases ($0$ hits en top-5)}
 
 \begin{table}[H]
-\centering
-\caption{Cinco sesiones donde el híbrido falla por completo en el top-5.}
 \label{tab:fail}
 \begin{tabular}{rrrl}
 \toprule

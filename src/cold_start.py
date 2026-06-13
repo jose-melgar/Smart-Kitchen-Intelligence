@@ -15,6 +15,28 @@ Estrategias evaluadas y comparadas con hold-out:
   4. mixed          — combinación lineal popularity*α + content*(1-α).
 
 La elección final se justifica con precision@k y coverage en el reporte.
+
+Estandarización con la evaluación global (evaluation.py)
+-------------------------------------------------------
+Ambos experimentos comparten EXACTAMENTE el mismo candidate pool: el catálogo
+completo de 50 productos menos los ítems ya conocidos de la sesión. La única
+diferencia es la TASA DE ENMASCARAMIENTO, que es intrínseca a cada tarea:
+
+  * Global (Masked Basket Completion): se ocultan el 20 % de las interacciones,
+    por lo que el conjunto de verdad por sesión es pequeño (~1-2 ítems). Con
+    precision@5 = hits/5, el techo medio de precisión es ~min(5,|truth|)/5 ≈
+    0.2-0.4, y el promedio observado ronda 0.05.
+  * Cold-start: por definición solo se conservan 1-2 seeds, ocultando ~85-90 %
+    de la canasta, por lo que el conjunto de verdad es grande (~7 ítems). El
+    techo de precision@5 sube a 1.0 y por eso la precisión cruda (~0.20) es
+    mecánicamente mayor — NO porque el escenario sea "más fácil".
+
+Para que las cifras sean comparables se reportan, además de precision@5 cruda:
+  * recall@5            — normaliza por |truth|.
+  * map@5               — calidad del ranking, normalizada por min(k,|truth|).
+  * nprec@5             — precisión normalizada por su techo: hits/min(k,|truth|),
+                          invariante a la tasa de enmascaramiento.
+Así se elimina la falsa contradicción de escalas entre la Sección global y esta.
 """
 
 from __future__ import annotations
@@ -79,12 +101,18 @@ def evaluate_session_cold(
     pop: np.ndarray,
     seed_items_per_session: int = 1,
     k: int = 5,
-    n_sample: int = 400,
+    n_sample: int | None = None,
     seed: int = 42,
 ) -> pd.DataFrame:
     """
     Para cada sesión multi-producto, "ocultamos" todos menos
-    `seed_items_per_session` items, y medimos precision@k para 4 estrategias.
+    `seed_items_per_session` items, y medimos un conjunto de métricas
+    estandarizado (las mismas que evaluation.py más nprec@k) para 4 estrategias.
+
+    `n_sample=None` evalúa TODAS las sesiones elegibles (determinista). Esto
+    estandariza el universo de prueba en lugar de submuestrear 400 al azar.
+    El candidate pool es el catálogo completo menos los seeds conocidos, idéntico
+    al de la evaluación global.
     """
     rng = np.random.default_rng(seed)
     R_lil = R.tolil()
@@ -93,7 +121,7 @@ def evaluate_session_cold(
     # Sesiones candidatas: las que tienen al menos seed_items+1 productos.
     sess_with_enough = [u for u in range(n_u)
                         if len(R_lil.rows[u]) >= seed_items_per_session + 1]
-    if len(sess_with_enough) > n_sample:
+    if n_sample is not None and len(sess_with_enough) > n_sample:
         sess_with_enough = rng.choice(sess_with_enough, n_sample, replace=False).tolist()
 
     rows = []
@@ -102,6 +130,7 @@ def evaluate_session_cold(
         rng.shuffle(items)
         known = items[:seed_items_per_session]
         truth = set(items[seed_items_per_session:])
+        ceil = min(k, len(truth))  # techo de aciertos posibles en top-k
 
         def topk(scores):
             scores = scores.copy()
@@ -119,9 +148,17 @@ def evaluate_session_cold(
         }
         row = {"session_idx": u, "n_known": len(known), "n_truth": len(truth)}
         for name, rec in results.items():
-            hits = sum(1 for i in rec if i in truth)
-            row[f"prec@{k}_{name}"] = hits / k
-            row[f"rec@{k}_{name}"] = hits / max(1, len(truth))
+            rec_list = list(rec)
+            hits = sum(1 for i in rec_list if i in truth)
+            row[f"prec@{k}_{name}"] = hits / k                  # cruda (depende del techo)
+            row[f"rec@{k}_{name}"] = hits / max(1, len(truth))  # normalizada por |truth|
+            row[f"nprec@{k}_{name}"] = hits / max(1, ceil)      # normalizada por techo
+            ap, nh = 0.0, 0
+            for rank, i in enumerate(rec_list, start=1):
+                if i in truth:
+                    nh += 1
+                    ap += nh / rank
+            row[f"map@{k}_{name}"] = ap / max(1, ceil)
         rows.append(row)
 
     return pd.DataFrame(rows)
@@ -177,19 +214,19 @@ def main() -> None:
     print(f"[cold] R={R.shape}, popularity head: "
           f"{[(int(i), float(pop[i])) for i in np.argsort(-pop)[:3]]}")
 
-    # --- Sesión cold ---
+    # --- Sesión cold (universo COMPLETO de sesiones elegibles, determinista) ---
     print("\n[cold] Evaluando sesión cold (1 seed item conocido) ...")
     df_sess = evaluate_session_cold(R, item_sim_cf, item_sim_content, pop,
                                     seed_items_per_session=1, k=5,
-                                    n_sample=400, seed=42)
-    print(df_sess.filter(regex="prec@5").mean().round(4))
+                                    n_sample=None, seed=42)
+    print(df_sess.filter(regex="^prec@5").mean().round(4))
     df_sess.to_csv(REC_DIR / "cold_start_session.csv", index=False)
 
     print("\n[cold] Evaluando sesión cold (2 seed items conocidos) ...")
     df_sess2 = evaluate_session_cold(R, item_sim_cf, item_sim_content, pop,
                                      seed_items_per_session=2, k=5,
-                                     n_sample=400, seed=42)
-    print(df_sess2.filter(regex="prec@5").mean().round(4))
+                                     n_sample=None, seed=42)
+    print(df_sess2.filter(regex="^prec@5").mean().round(4))
     df_sess2.to_csv(REC_DIR / "cold_start_session_2seed.csv", index=False)
 
     # --- Producto cold ---
@@ -198,23 +235,52 @@ def main() -> None:
     print(f"  precision_content@5 (avg) = {df_prod['precision_content@k'].mean():.4f}")
     df_prod.to_csv(REC_DIR / "cold_start_product.csv", index=False)
 
-    # Conclusión: guardar JSON con la decisión.
-    means_1seed = df_sess.filter(regex="prec@5").mean().to_dict()
-    means_2seed = df_sess2.filter(regex="prec@5").mean().to_dict()
-    winner = max(means_2seed, key=means_2seed.get)
+    # Conclusión: guardar JSON con la decisión + métricas comparables.
+    metric_prefixes = ("prec@5_", "rec@5_", "nprec@5_", "map@5_")
+
+    def metric_block(df):
+        return {c: float(df[c].mean())
+                for c in df.columns
+                if c.startswith(metric_prefixes)}
+
+    means_1seed = metric_block(df_sess)
+    means_2seed = metric_block(df_sess2)
+    winner = max((k for k in means_2seed if k.startswith("prec@5")),
+                 key=lambda k: means_2seed[k])
+    avg_truth_1 = float(df_sess["n_truth"].mean())
+    avg_truth_2 = float(df_sess2["n_truth"].mean())
     summary = {
+        "protocol": {
+            "candidate_pool": "catálogo completo (50) menos seeds conocidos — IDÉNTICO al global",
+            "universe": f"todas las sesiones elegibles (1 seed: {len(df_sess)}, "
+                        f"2 seed: {len(df_sess2)})",
+            "metrics": ["prec@5 (cruda)", "rec@5", "nprec@5 (normalizada por techo)", "map@5"],
+        },
+        "scale_reconciliation_vs_global": {
+            "global_masking_ratio": "20% ocultado -> truth pequeño (~1-2) -> techo prec@5 ~0.2-0.4",
+            "coldstart_masking_ratio": ("~85-90% ocultado (solo 1-2 seeds) -> "
+                                        f"truth grande (~{avg_truth_1:.1f} con 1 seed) -> "
+                                        "techo prec@5 = 1.0"),
+            "conclusion": ("La diferencia de escala en precision@5 cruda (global ~0.05 vs "
+                           "cold-start ~0.20) NO indica que el cold-start sea más fácil ni "
+                           "que difiera el candidate pool: es un efecto mecánico del techo "
+                           "de precision@5, que crece con |truth|. Las métricas nprec@5 y "
+                           "map@5 (invariantes al techo) hacen comparables ambas secciones."),
+        },
+        "avg_truth_size": {"1seed": avg_truth_1, "2seed": avg_truth_2},
         "session_cold_1seed": means_1seed,
         "session_cold_2seed": means_2seed,
         "product_cold_content_only_precision@5": float(df_prod['precision_content@k'].mean()),
         "selected_strategy": winner.replace("prec@5_", ""),
-        "rationale": ("Se selecciona la estrategia con mayor precision@5 sobre "
-                      "hold-out de 400 sesiones con 2 productos seed. "
-                      "Para producto cold, content-only es la única viable "
-                      "porque no hay historial CF."),
+        "rationale": ("Se selecciona la estrategia con mayor precision@5 (y nprec@5) sobre "
+                      "el universo completo de sesiones con 2 productos seed. "
+                      "Para producto cold, content-only es la única viable porque no hay "
+                      "historial CF."),
     }
     with open(REC_DIR / "cold_start_summary.json", "w") as f:
         json.dump(summary, f, indent=2)
     print(f"\n[cold] Estrategia ganadora: {summary['selected_strategy']}")
+    print(f"[cold] Tamaño medio de truth: 1seed={avg_truth_1:.2f}, 2seed={avg_truth_2:.2f}")
 
 
 if __name__ == "__main__":

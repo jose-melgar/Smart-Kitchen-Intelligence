@@ -3,12 +3,17 @@
     "unit": "restock_session",
     "split": "Masked Basket Completion Task (Cloze Task Style) - Random 20% hold-out, seed=42",
     "candidate_pool": "all 50 catalog products, minus train-seen of the session",
+    "masking_ratio": "20% of non-zero interactions hidden -> small truth set (~1-2)",
     "metrics": [
       "precision@5",
       "recall@5",
+      "nprecision@5",
       "map@5",
       "coverage@5"
     ]
+  },
+  "cross_section_comparability": {
+    "note": "El candidate pool (50 productos menos vistos) es ID\u00c9NTICO al del experimento de Cold-Start (cold_start.py). La diferencia de escala en precision@5 cruda entre secciones se debe SOLO a la tasa de enmascaramiento (20% aqu\u00ed vs ~85-90% en cold-start), que cambia el tama\u00f1o del truth set y por tanto el techo de precision@5. Las m\u00e9tricas nprecision@5 y map@5 (normalizadas por min(k,|truth|)) son invariantes a ese techo y permiten comparar ambas secciones de forma justa."
   },
   "analysis_notes": {
     "popularity_paradox_defense": "La ventaja numerica en Precision de la popularidad pura constituye un 'Sesgo de Consumo Basal' provocado por el 'Efecto de Productos Ubicuos Estructurales' del simulador stocastico, representando una patologia del entorno sinteticoy no una ventaja predictiva real. Se aplica un criterio estricto de 'Penalizacion por Trivialidad': la popularidad sufre un colapso total de diversidad (22% de Catalog Coverage), mientras que el modelo Hibrido garantiza un 100% de Catalog Coverage, activando la se\u00f1al de descubrimiento y mitigacion de desperdicio del inventario vivo en la cocina."
@@ -17,30 +22,38 @@
     "popularity": {
       "precision@k": 0.05082644628099174,
       "recall@k": 0.11672200905155451,
+      "nprecision@k": 0.11737258953168045,
       "map@k": 0.05390897612488522,
       "coverage@k": 0.22,
-      "n_eval_sessions": 968
+      "n_eval_sessions": 968,
+      "avg_truth_size": 2.1632231404958677
     },
     "content_tfidf": {
-      "precision@k": 0.047520661157024795,
-      "recall@k": 0.10668699986881806,
-      "map@k": 0.05183425160697888,
-      "coverage@k": 0.94,
-      "n_eval_sessions": 968
+      "precision@k": 0.04504132231404959,
+      "recall@k": 0.10368867243867243,
+      "nprecision@k": 0.10394283746556475,
+      "map@k": 0.05108815426997245,
+      "coverage@k": 0.84,
+      "n_eval_sessions": 968,
+      "avg_truth_size": 2.1632231404958677
     },
     "cf_als": {
       "precision@k": 0.04669421487603306,
       "recall@k": 0.11248811163583891,
+      "nprecision@k": 0.1130681818181818,
       "map@k": 0.05490013774104683,
       "coverage@k": 1.0,
-      "n_eval_sessions": 968
+      "n_eval_sessions": 968,
+      "avg_truth_size": 2.1632231404958677
     },
     "hybrid": {
-      "precision@k": 0.045454545454545456,
-      "recall@k": 0.11061999868818051,
-      "map@k": 0.05393508953168044,
+      "precision@k": 0.04938016528925619,
+      "recall@k": 0.11765504066640431,
+      "nprecision@k": 0.1180785123966942,
+      "map@k": 0.057437729568411394,
       "coverage@k": 1.0,
-      "n_eval_sessions": 968
+      "n_eval_sessions": 968,
+      "avg_truth_size": 2.1632231404958677
     }
   }
 }

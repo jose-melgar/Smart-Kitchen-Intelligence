@@ -123,6 +123,11 @@ def fig_tfidf_idf():
     inv = {i: t for t, i in vocab.items()}
     # Reconstruimos idf desde X / tfidf_items (heurística rápida).
     X = sp.load_npz(REC_DIR / "tfidf_items.npz")
+    # tfidf_items.npz es ahora una matriz híbrida: las primeras len(vocab)
+    # columnas son tokens TF-IDF; las restantes son dimensiones numéricas
+    # (macros + nutriscore) que no tienen entrada en el vocabulario textual.
+    n_text = len(vocab)
+    X = X[:, :n_text]
     # Aproximación: idf relativo = inversa de col_density.
     col_density = np.asarray((X > 0).sum(axis=0)).flatten() / X.shape[0]
     idf_proxy = np.log(1.0 / np.maximum(col_density, 1e-6))
@@ -143,15 +148,4 @@ def fig_tfidf_idf():
 
 def main() -> None:
     fig_sparsity()
-    fig_normalizations()
-    fig_lambda_sweep()
-    fig_cold_start()
-    fig_hybrid_ablation()
-    fig_tfidf_idf()
-    print(f"[figures] Figuras guardadas en {FIG_DIR}")
-    for p in sorted(FIG_DIR.glob("*.png")):
-        print(f"  {p.name}")
-
-
-if __name__ == "__main__":
-    main()
+    fig_n

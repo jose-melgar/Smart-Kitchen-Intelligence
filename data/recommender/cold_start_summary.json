@@ -1,17 +1,60 @@
 {
+  "protocol": {
+    "candidate_pool": "cat\u00e1logo completo (50) menos seeds conocidos \u2014 ID\u00c9NTICO al global",
+    "universe": "todas las sesiones elegibles (1 seed: 1177, 2 seed: 1177)",
+    "metrics": [
+      "prec@5 (cruda)",
+      "rec@5",
+      "nprec@5 (normalizada por techo)",
+      "map@5"
+    ]
+  },
+  "scale_reconciliation_vs_global": {
+    "global_masking_ratio": "20% ocultado -> truth peque\u00f1o (~1-2) -> techo prec@5 ~0.2-0.4",
+    "coldstart_masking_ratio": "~85-90% ocultado (solo 1-2 seeds) -> truth grande (~7.7 con 1 seed) -> techo prec@5 = 1.0",
+    "conclusion": "La diferencia de escala en precision@5 cruda (global ~0.05 vs cold-start ~0.20) NO indica que el cold-start sea m\u00e1s f\u00e1cil ni que difiera el candidate pool: es un efecto mec\u00e1nico del techo de precision@5, que crece con |truth|. Las m\u00e9tricas nprec@5 y map@5 (invariantes al techo) hacen comparables ambas secciones."
+  },
+  "avg_truth_size": {
+    "1seed": 7.717077315208156,
+    "2seed": 6.717077315208156
+  },
   "session_cold_1seed": {
-    "prec@5_popularity": 0.17099999999999999,
-    "prec@5_partial_cf": 0.20200000000000004,
-    "prec@5_content_only": 0.157,
-    "prec@5_mixed": 0.16049999999999998
+    "prec@5_popularity": 0.17247238742565846,
+    "rec@5_popularity": 0.11396732414278381,
+    "nprec@5_popularity": 0.17666383460775983,
+    "map@5_popularity": 0.09903686396677051,
+    "prec@5_partial_cf": 0.19405267629566694,
+    "rec@5_partial_cf": 0.1256865336870839,
+    "nprec@5_partial_cf": 0.19762107051826674,
+    "map@5_partial_cf": 0.11631006324931559,
+    "prec@5_content_only": 0.1580288870008496,
+    "rec@5_content_only": 0.10429509424964044,
+    "nprec@5_content_only": 0.16090342679127725,
+    "map@5_content_only": 0.08351883319173038,
+    "prec@5_mixed": 0.16380628717077317,
+    "rec@5_mixed": 0.1094449228448468,
+    "nprec@5_mixed": 0.1679835740583404,
+    "map@5_mixed": 0.09104007363353157
   },
   "session_cold_2seed": {
-    "prec@5_popularity": 0.152,
-    "prec@5_partial_cf": 0.1955,
-    "prec@5_content_only": 0.146,
-    "prec@5_mixed": 0.1425
+    "prec@5_popularity": 0.1544604927782498,
+    "rec@5_popularity": 0.1168981621886093,
+    "nprec@5_popularity": 0.16438685924667235,
+    "map@5_popularity": 0.09195600868498065,
+    "prec@5_partial_cf": 0.18504672897196262,
+    "rec@5_partial_cf": 0.13831936406949905,
+    "nprec@5_partial_cf": 0.19616256018125178,
+    "map@5_partial_cf": 0.11470145379023886,
+    "prec@5_content_only": 0.1395072217502124,
+    "rec@5_content_only": 0.10497119748221197,
+    "nprec@5_content_only": 0.14733786462758428,
+    "map@5_content_only": 0.07741598225243085,
+    "prec@5_mixed": 0.14579439252336449,
+    "rec@5_mixed": 0.11012916412230714,
+    "nprec@5_mixed": 0.1546728971962617,
+    "map@5_mixed": 0.08347824034739923
   },
   "product_cold_content_only_precision@5": 0.7999999999999998,
   "selected_strategy": "partial_cf",
-  "rationale": "Se selecciona la estrategia con mayor precision@5 sobre hold-out de 400 sesiones con 2 productos seed. Para producto cold, content-only es la \u00fanica viable porque no hay historial CF."
+  "rationale": "Se selecciona la estrategia con mayor precision@5 (y nprec@5) sobre el universo completo de sesiones con 2 productos seed. Para producto cold, content-only es la \u00fanica viable porque no hay historial CF."
 }

@@ -2,17 +2,30 @@
 recommender_content.py — Hito 4 (Semana 11): recomendador basado en contenido.
 
 Análogo del recomendador de Semana 9 ("Pachamix Lyrics"): en SKI, el "texto" de
-cada ítem son los atributos descriptivos del producto (nombre, categoría,
-clasificación de evento, nutriscore como token). TF-IDF construye un vector
-disperso por producto que pondera tokens raros y penaliza los muy comunes.
+cada ítem son los atributos *nominales* del producto (nombre, categoría,
+clasificación de evento). TF-IDF construye un vector disperso por producto que
+pondera tokens raros y penaliza los muy comunes.
+
+Representación HÍBRIDA texto + numérico (corrección de la observación del
+revisor sobre ortogonalidad):
+  Las variables nutricionales (calories/proteins/carbs) y el nutriscore son
+  variables ORDINALES/CONTINUAS. Discretizarlas en tokens independientes
+  (cal_low/cal_mid/cal_high) hacía que TF-IDF las tratase como dimensiones
+  estrictamente ortogonales — la distancia entre cal_low y cal_mid resultaba
+  idéntica a la distancia entre cal_low y cal_high, perdiéndose la noción de
+  orden e intervalo. La corrección: cada macro entra como UNA sola dimensión
+  numérica escalada (MinMax) y el nutriscore como un eje ordinal (A→E).
+  Estas dimensiones se concatenan al bloque TF-IDF y todo el vector se
+  L2-normaliza, de modo que cal=180 y cal=190 quedan próximos mientras que
+  cal=50 y cal=900 quedan lejos, preservando intervalo y orden.
 
 Pipeline:
-  1. Concatenar atributos textuales por producto (group by product_id).
-  2. Tokenizar y vectorizar con TF-IDF (term-frequency × IDF).
-  3. Construir el perfil de un household como centroide (TF-IDF promedio) de
-     los productos que ha consumido históricamente.
-  4. Recomendar top-N por similitud coseno entre perfil y catálogo, excluyendo
-     productos ya consumidos.
+  1. Agregar atributos por producto (group by product_id).
+  2. Bloque textual: TF-IDF sobre nombre + categoría + clasificación.
+  3. Bloque numérico: macros continuas + nutriscore ordinal, escalados.
+  4. Concatenar ambos bloques y L2-normalizar (cosine = dot product).
+  5. Perfil de household = centroide ponderado por frecuencia de consumo.
+  6. Recomendar top-N por similitud coseno, excluyendo productos consumidos.
 """
 
 from __future__ import annotations
@@ -24,7 +37,15 @@ import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import MinMaxScaler, normalize
 import scipy.sparse as sp
+
+# Orden canónico del nutriscore (A = más saludable → E = menos saludable).
+NUTRI_ORDER = {"a": 0.0, "b": 1.0, "c": 2.0, "d": 3.0, "e": 4.0}
+# Columnas numéricas continuas tratadas como ejes ordenados.
+MACRO_COLS = ["calories_100g", "proteins_100g", "carbs_100g"]
+# Peso relativo del bloque numérico frente al bloque TF-IDF (ver build_item_matrix).
+NUMERIC_WEIGHT = 0.5
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_PROC = ROOT / "data" / "processed" / "inventory_v1.csv"
@@ -56,38 +77,23 @@ def build_product_catalog(df: pd.DataFrame) -> pd.DataFrame:
         .reset_index()
     )
 
-    def macro_bucket(v, edges, names):
-        if pd.isna(v):
-            return ""
-        for e, n in zip(edges, names):
-            if v <= e:
-                return n
-        return names[-1]
-
-    # Discretizamos macros en tokens (low/mid/high) para que TF-IDF los capture.
-    agg["cal_token"] = agg["calories_100g"].apply(
-        lambda v: macro_bucket(v, [50, 200, 1000], ["cal_low", "cal_mid", "cal_high"])
-    )
-    agg["prot_token"] = agg["proteins_100g"].apply(
-        lambda v: macro_bucket(v, [2, 10, 100], ["prot_low", "prot_mid", "prot_high"])
-    )
-    agg["carb_token"] = agg["carbs_100g"].apply(
-        lambda v: macro_bucket(v, [5, 20, 100], ["carb_low", "carb_mid", "carb_high"])
-    )
-
+    # Bloque TEXTUAL: solo atributos genuinamente nominales (sin orden interno).
+    # Las macros y el nutriscore NO se tokenizan aquí: entran como dimensiones
+    # numéricas ordenadas en build_item_matrix() para no romper su intervalo.
     def make_doc(row) -> str:
         tokens = [
             str(row["product_name"]).lower(),
             f"category_{row['category']}",
             f"class_{str(row['classification']).lower()}",
-            f"nutri_{str(row['nutriscore']).lower()}",
-            row["cal_token"],
-            row["prot_token"],
-            row["carb_token"],
         ]
         return " ".join(t for t in tokens if t)
 
     agg["doc"] = agg.apply(make_doc, axis=1)
+
+    # Eje ordinal del nutriscore (A→E). Se conserva como columna numérica.
+    agg["nutri_ord"] = (
+        agg["nutriscore"].astype(str).str.lower().map(NUTRI_ORDER)
+    )
     return agg
 
 
@@ -120,6 +126,46 @@ def fit_tfidf(docs: list[str], min_df: int = 1, max_df: float = 0.95) -> tuple:
     )
     X = vectorizer.fit_transform(docs)
     return vectorizer, X
+
+
+def build_numeric_block(catalog: pd.DataFrame,
+                        numeric_weight: float = NUMERIC_WEIGHT) -> tuple:
+    """
+    Bloque numérico de features de contenido: macros continuas + nutriscore
+    ordinal, escalados a [0,1] con MinMax. Cada variable física ocupa UNA sola
+    dimensión ordenada (no tres tokens ortogonales), de forma que la distancia
+    euclídea/coseno respeta el intervalo real: |cal=180 − cal=190| ≪ |cal=50 −
+    cal=900|. Devuelve (X_num_sparse, scaler, col_names).
+    """
+    cols = MACRO_COLS + ["nutri_ord"]
+    num = catalog[cols].astype(float).copy()
+    # Imputación por mediana para no introducir un nivel ficticio.
+    num = num.fillna(num.median(numeric_only=True))
+    scaler = MinMaxScaler()
+    num_scaled = scaler.fit_transform(num.values)
+    X_num = sp.csr_matrix(num_scaled.astype(np.float64) * float(numeric_weight))
+    return X_num, scaler, cols
+
+
+def build_item_matrix(catalog: pd.DataFrame,
+                      numeric_weight: float = NUMERIC_WEIGHT,
+                      min_df: int = 1, max_df: float = 0.95) -> tuple:
+    """
+    Matriz de ítems HÍBRIDA: [bloque TF-IDF textual | bloque numérico escalado],
+    L2-normalizada por fila para que cosine_similarity == dot product.
+
+    El parámetro `numeric_weight` controla cuánto pesa el bloque numérico frente
+    al textual. Esta representación corrige la ruptura de continuidad: las macros
+    dejan de ser tokens ortogonales (cal_low/cal_mid/cal_high) y pasan a ser ejes
+    continuos donde se preservan orden e intervalo.
+
+    Devuelve (vectorizer, X, scaler, num_cols).
+    """
+    vectorizer, X_text = fit_tfidf(catalog["doc"].tolist(), min_df=min_df, max_df=max_df)
+    X_num, scaler, num_cols = build_numeric_block(catalog, numeric_weight)
+    X = sp.hstack([X_text, X_num], format="csr")
+    X = normalize(X, norm="l2", axis=1)
+    return vectorizer, X, scaler, num_cols
 
 
 # ---------------------------------------------------------------------------
@@ -195,12 +241,17 @@ def top_n(
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    # (regenera la matriz híbrida de contenido + artefactos derivados)
     df = pd.read_csv(DATA_PROC, parse_dates=["timestamp", "expiry_date"])
     catalog = build_product_catalog(df)
     print(f"[content] Catálogo: {len(catalog)} productos.")
 
-    vec, X = fit_tfidf(catalog["doc"].tolist())
-    print(f"[content] TF-IDF: vocabulario={len(vec.vocabulary_)}, shape={X.shape}")
+    vec, X, scaler, num_cols = build_item_matrix(catalog, numeric_weight=NUMERIC_WEIGHT)
+    n_text = len(vec.vocabulary_)
+    print(f"[content] Matriz híbrida: shape={X.shape} "
+          f"(texto={n_text} tokens + numérico={len(num_cols)} dims: {num_cols})")
+    print(f"[content] Bloque numérico con peso={NUMERIC_WEIGHT} "
+          f"(macros MinMax + nutriscore ordinal A->E).")
     print(f"[content] Tokens con menor IDF (más comunes): ", end="")
     idf = vec.idf_
     vocab_inv = {i: t for t, i in vec.vocabulary_.items()}
@@ -210,9 +261,25 @@ def main() -> None:
     print(f"[content] Tokens con mayor IDF (raros, discriminantes): ", end="")
     print(", ".join(f"{vocab_inv[i]}({idf[i]:.2f})" for i in top))
 
+    # tfidf_items.npz ahora es la matriz híbrida texto+numérico (la que usan el
+    # híbrido y la evaluación para la similitud de contenido).
     sp.save_npz(OUT_DIR / "tfidf_items.npz", X)
     with open(OUT_DIR / "tfidf_vocab.json", "w") as f:
         json.dump(vec.vocabulary_, f)
+    with open(OUT_DIR / "content_features_meta.json", "w") as f:
+        json.dump({
+            "representation": "hybrid_tfidf_text + scaled_numeric",
+            "text_block": {"n_tokens": n_text,
+                           "fields": ["product_name", "category", "classification"]},
+            "numeric_block": {"columns": num_cols,
+                              "scaler": "MinMax[0,1]",
+                              "nutriscore_encoding": NUTRI_ORDER,
+                              "numeric_weight": NUMERIC_WEIGHT},
+            "note": ("Las macros continuas y el nutriscore ordinal entran como "
+                     "ejes numéricos ordenados (no tokens ortogonales), "
+                     "preservando orden e intervalo; el vector completo se "
+                     "L2-normaliza para que cosine == dot product.")
+        }, f, indent=2)
     catalog.to_csv(OUT_DIR / "product_catalog.csv", index=False)
 
     # Item-item similarity (contenido): se reutiliza en el híbrido y la comparación.
@@ -221,8 +288,6 @@ def main() -> None:
     print(f"[content] Item-item similarity (contenido) guardada.")
 
     # Demo: top-5 con hold-out de 20% del historial del household 0.
-    # (En SKI todos los households han tocado los 50 productos al menos una vez;
-    # para una demo realista se simula que parte del historial es desconocido.)
     rng = np.random.default_rng(42)
     hh0_out = df[(df["household_id"] == 0) & (df["event_type"] == "OUT")]["product_id"].unique()
     hidden = set(rng.choice(hh0_out, size=max(1, len(hh0_out) // 5), replace=False))
@@ -235,16 +300,6 @@ def main() -> None:
         df_visible[(df_visible["household_id"] == 0)
                    & (df_visible["event_type"] == "OUT")]["product_id"].unique()
     )
-    rec = top_n(sims, catalog, exclude_ids=consumed_visible, n=5)
-    rec["hit"] = rec["product_id"].isin(hidden)
-    print("[content] Top-5 (excluyendo visibles) — 'hit'=acertó un producto oculto:")
-    print(rec.to_string(index=False))
-
-
-    consumed_visible = set(
-            df_visible[(df_visible["household_id"] == 0)
-                    & (df_visible["event_type"] == "OUT")]["product_id"].unique()
-        )
     rec = top_n(sims, catalog, exclude_ids=consumed_visible, n=5)
     rec["hit"] = rec["product_id"].isin(hidden)
     print("[content] Top-5 (excluyendo visibles) — 'hit'=acertó un producto oculto:")

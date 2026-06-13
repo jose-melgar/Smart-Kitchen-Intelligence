@@ -1,7 +1,41 @@
-# Archivos de Python
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
 .venv/
-.env
+venv/
+env/
 
 # Credenciales y secretos
 .env
+.env.local
+*.secret
+
+# LaTeX auxiliares (mantener solo .tex y .pdf)
+*.aux
+*.log
+*.toc
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.~lock.*#
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Temporales del flujo de trabajo
+*.tmp
+lu*.tmp

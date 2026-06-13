@@ -1,0 +1,17 @@
+{
+  "session_cold_1seed": {
+    "prec@5_popularity": 0.17099999999999999,
+    "prec@5_partial_cf": 0.20200000000000004,
+    "prec@5_content_only": 0.157,
+    "prec@5_mixed": 0.16049999999999998
+  },
+  "session_cold_2seed": {
+    "prec@5_popularity": 0.152,
+    "prec@5_partial_cf": 0.1955,
+    "prec@5_content_only": 0.146,
+    "prec@5_mixed": 0.1425
+  },
+  "product_cold_content_only_precision@5": 0.7999999999999998,
+  "selected_strategy": "partial_cf",
+  "rationale": "Se selecciona la estrategia con mayor precision@5 sobre hold-out de 400 sesiones con 2 productos seed. Para producto cold, content-only es la \u00fanica viable porque no hay historial CF."
+}

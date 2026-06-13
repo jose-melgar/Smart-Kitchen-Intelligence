@@ -1,0 +1,51 @@
+product_id,product_name,category,classification,nutriscore,calories_100g,proteins_100g,carbs_100g,cal_token,prot_token,carb_token,doc
+4605,Yellow Onions,4,Purchase,A,30.0,0.68,7.43,cal_low,prot_low,carb_mid,yellow onions category_4 class_purchase nutri_a cal_low prot_low carb_mid
+4920,Seedless Red Grapes,4,Purchase,B,71.0,1.18,17.6,cal_mid,prot_low,carb_mid,seedless red grapes category_4 class_purchase nutri_b cal_mid prot_low carb_mid
+5077,100% Whole Wheat Bread,3,Consumption,C,256.0,11.6,48.8,cal_high,prot_high,carb_high,100% whole wheat bread category_3 class_consumption nutri_c cal_high prot_high carb_high
+5876,Organic Lemon,4,Purchase,D,300.0,0.0,6.67,cal_high,prot_low,carb_mid,organic lemon category_4 class_purchase nutri_d cal_high prot_low carb_mid
+8277,Apple Honeycrisp Organic,4,Purchase,Falta Dato,,0.102,14.7,,prot_low,carb_mid,apple honeycrisp organic category_4 class_purchase nutri_falta dato prot_low carb_mid
+8518,Organic Red Onion,4,Purchase,A,30.0,0.68,6.76,cal_low,prot_low,carb_mid,organic red onion category_4 class_purchase nutri_a cal_low prot_low carb_mid
+9076,Blueberries,1,Consumption,B,57.0,0.71,12.1,cal_mid,prot_low,carb_mid,blueberries category_1 class_consumption nutri_b cal_mid prot_low carb_mid
+10749,Organic Red Bell Pepper,4,Purchase,Falta Dato,,0.896,6.65,,prot_low,carb_mid,organic red bell pepper category_4 class_purchase nutri_falta dato prot_low carb_mid
+13176,Bag of Organic Bananas,4,Purchase,D,346.0,3.89,88.3,cal_high,prot_mid,carb_high,bag of organic bananas category_4 class_purchase nutri_d cal_high prot_mid carb_high
+16797,Strawberries,4,Purchase,A,36.0,0.71,9.29,cal_low,prot_low,carb_mid,strawberries category_4 class_purchase nutri_a cal_low prot_low carb_mid
+17794,Carrots,4,Purchase,A,38.0,1.28,8.97,cal_low,prot_low,carb_mid,carrots category_4 class_purchase nutri_a cal_low prot_low carb_mid
+19057,Organic Large Extra Fancy Fuji Apple,4,Purchase,Falta Dato,,0.148,15.7,,prot_low,carb_mid,organic large extra fancy fuji apple category_4 class_purchase nutri_falta dato prot_low carb_mid
+19660,Spring Water,7,Consumption,A,0.0,0.0,0.0,cal_low,prot_low,carb_low,spring water category_7 class_consumption nutri_a cal_low prot_low carb_low
+21137,Organic Strawberries,4,Purchase,A,36.0,0.71,9.29,cal_low,prot_low,carb_mid,organic strawberries category_4 class_purchase nutri_a cal_low prot_low carb_mid
+21616,Organic Baby Arugula,4,Purchase,A,25.0,2.82,3.52,cal_low,prot_mid,carb_low,organic baby arugula category_4 class_purchase nutri_a cal_low prot_mid carb_low
+21903,Organic Baby Spinach,4,Purchase,A,23.0,2.6799999999999997,3.36,cal_low,prot_mid,carb_low,organic baby spinach category_4 class_purchase nutri_a cal_low prot_mid carb_low
+22035,Organic Whole String Cheese,16,Purchase,B,50.0,1.45,6.25,cal_low,prot_low,carb_mid,organic whole string cheese category_16 class_purchase nutri_b cal_low prot_low carb_mid
+22935,Organic Yellow Onion,4,Purchase,A,30.0,0.68,7.43,cal_low,prot_low,carb_mid,organic yellow onion category_4 class_purchase nutri_a cal_low prot_low carb_mid
+24852,Banana,4,Purchase,D,312.0,12.5,40.6,cal_high,prot_high,carb_high,banana category_4 class_purchase nutri_d cal_high prot_high carb_high
+24964,Organic Garlic,4,Purchase,C,167.0,0.0,33.3,cal_mid,prot_low,carb_high,organic garlic category_4 class_purchase nutri_c cal_mid prot_low carb_high
+26209,Limes,4,Purchase,A,30.0,0.0,10.4,cal_low,prot_low,carb_mid,limes category_4 class_purchase nutri_a cal_low prot_low carb_mid
+26604,Organic Blackberries,4,Purchase,B,59.0,1.47,15.4,cal_mid,prot_low,carb_mid,organic blackberries category_4 class_purchase nutri_b cal_mid prot_low carb_mid
+27086,Half & Half,16,Purchase,B,131.0,3.13,4.3,cal_mid,prot_mid,carb_low,half & half category_16 class_purchase nutri_b cal_mid prot_mid carb_low
+27104,Fresh Cauliflower,4,Purchase,B,52.0,1.94,5.01,cal_mid,prot_low,carb_mid,fresh cauliflower category_4 class_purchase nutri_b cal_mid prot_low carb_mid
+27845,Organic Whole Milk,16,Purchase,B,62.0,3.39,5.08,cal_mid,prot_mid,carb_mid,organic whole milk category_16 class_purchase nutri_b cal_mid prot_mid carb_mid
+27966,Organic Raspberries,4,Purchase,B,50.0,1.43,12.1,cal_low,prot_low,carb_mid,organic raspberries category_4 class_purchase nutri_b cal_low prot_low carb_mid
+28204,Organic Fuji Apple,4,Purchase,D,400.0,0.0,90.0,cal_high,prot_low,carb_high,organic fuji apple category_4 class_purchase nutri_d cal_high prot_low carb_high
+28985,Michigan Organic Kale,4,Purchase,A,35.0,2.92,4.42,cal_low,prot_mid,carb_low,michigan organic kale category_4 class_purchase nutri_a cal_low prot_mid carb_low
+30391,Organic Cucumber,4,Purchase,A,34.0,0.5,6.79,cal_low,prot_low,carb_mid,organic cucumber category_4 class_purchase nutri_a cal_low prot_low carb_mid
+30489,Original Hummus,20,Consumption,C,214.0,7.14,14.3,cal_high,prot_mid,carb_mid,original hummus category_20 class_consumption nutri_c cal_high prot_mid carb_mid
+31717,Organic Cilantro,4,Purchase,A,0.0,0.0,0.0,cal_low,prot_low,carb_low,organic cilantro category_4 class_purchase nutri_a cal_low prot_low carb_low
+34126,Organic Italian Parsley Bunch,4,Purchase,D,392.0,7.43,76.25,cal_high,prot_mid,carb_high,organic italian parsley bunch category_4 class_purchase nutri_d cal_high prot_mid carb_high
+35951,Organic Unsweetened Almond Milk,16,Consumption,A,15.0,0.55,0.34,cal_low,prot_low,carb_low,organic unsweetened almond milk category_16 class_consumption nutri_a cal_low prot_low carb_low
+37646,Organic Gala Apples,4,Purchase,B,52.0,0.32,14.3,cal_mid,prot_low,carb_mid,organic gala apples category_4 class_purchase nutri_b cal_mid prot_low carb_mid
+39275,Organic Blueberries,4,Purchase,B,57.0,0.71,12.1,cal_mid,prot_low,carb_mid,organic blueberries category_4 class_purchase nutri_b cal_mid prot_low carb_mid
+39877,Organic Granny Smith Apple,4,Purchase,Falta Dato,,0.266,14.1,,prot_low,carb_mid,organic granny smith apple category_4 class_purchase nutri_falta dato prot_low carb_mid
+40706,Organic Grape Tomatoes,4,Purchase,A,36.0,1.19,7.14,cal_low,prot_low,carb_mid,organic grape tomatoes category_4 class_purchase nutri_a cal_low prot_low carb_mid
+41950,Organic Tomato Cluster,4,Purchase,A,28.0,2.98,5.06,cal_low,prot_mid,carb_mid,organic tomato cluster category_4 class_purchase nutri_a cal_low prot_mid carb_mid
+42265,Organic Baby Carrots,4,Purchase,A,35.0,1.18,8.24,cal_low,prot_low,carb_mid,organic baby carrots category_4 class_purchase nutri_a cal_low prot_low carb_mid
+43352,Raspberries,4,Purchase,B,50.0,1.43,12.1,cal_low,prot_low,carb_mid,raspberries category_4 class_purchase nutri_b cal_low prot_low carb_mid
+44359,Organic Small Bunch Celery,4,Purchase,D,392.0,7.43,76.25,cal_high,prot_mid,carb_high,organic small bunch celery category_4 class_purchase nutri_d cal_high prot_mid carb_high
+44632,Sparkling Water Grapefruit,7,Consumption,A,0.0,0.0,0.0,cal_low,prot_low,carb_low,sparkling water grapefruit category_7 class_consumption nutri_a cal_low prot_low carb_low
+45007,Organic Zucchini,4,Purchase,A,21.0,1.05,4.21,cal_low,prot_low,carb_low,organic zucchini category_4 class_purchase nutri_a cal_low prot_low carb_low
+45066,Honeycrisp Apple,4,Purchase,A,2.0,0.0,3.81,cal_low,prot_low,carb_low,honeycrisp apple category_4 class_purchase nutri_a cal_low prot_low carb_low
+46979,Asparagus,4,Purchase,A,18.0,2.35,3.53,cal_low,prot_mid,carb_low,asparagus category_4 class_purchase nutri_a cal_low prot_mid carb_low
+47209,Organic Hass Avocado,4,Purchase,Falta Dato,,1.81,8.32,,prot_low,carb_mid,organic hass avocado category_4 class_purchase nutri_falta dato prot_low carb_mid
+47626,Large Lemon,4,Purchase,B,55.0,10.7,2.36,cal_mid,prot_high,carb_low,large lemon category_4 class_purchase nutri_b cal_mid prot_high carb_low
+47766,Organic Avocado,4,Purchase,D,427.0,1.9,7.36,cal_high,prot_low,carb_mid,organic avocado category_4 class_purchase nutri_d cal_high prot_low carb_mid
+49235,Organic Half & Half,16,Purchase,B,131.0,3.13,4.3,cal_mid,prot_mid,carb_low,organic half & half category_16 class_purchase nutri_b cal_mid prot_mid carb_low
+49683,Cucumber Kirby,4,Purchase,A,34.0,0.5,6.79,cal_low,prot_low,carb_mid,cucumber kirby category_4 class_purchase nutri_a cal_low prot_low carb_mid

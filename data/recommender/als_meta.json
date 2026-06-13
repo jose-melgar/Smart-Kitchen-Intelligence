@@ -1,0 +1,9 @@
+{
+  "factors": 16,
+  "alpha": 20.0,
+  "lambda": 1.0,
+  "iterations": 12,
+  "encoding": "R_restock_tfidf_R",
+  "best_precision@5": 0.04938016528925619,
+  "best_recall@5": 0.11630345664436574
+}

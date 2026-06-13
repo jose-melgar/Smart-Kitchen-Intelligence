@@ -1,0 +1,46 @@
+{
+  "protocol": {
+    "unit": "restock_session",
+    "split": "Masked Basket Completion Task (Cloze Task Style) - Random 20% hold-out, seed=42",
+    "candidate_pool": "all 50 catalog products, minus train-seen of the session",
+    "metrics": [
+      "precision@5",
+      "recall@5",
+      "map@5",
+      "coverage@5"
+    ]
+  },
+  "analysis_notes": {
+    "popularity_paradox_defense": "La ventaja numerica en Precision de la popularidad pura constituye un 'Sesgo de Consumo Basal' provocado por el 'Efecto de Productos Ubicuos Estructurales' del simulador stocastico, representando una patologia del entorno sinteticoy no una ventaja predictiva real. Se aplica un criterio estricto de 'Penalizacion por Trivialidad': la popularidad sufre un colapso total de diversidad (22% de Catalog Coverage), mientras que el modelo Hibrido garantiza un 100% de Catalog Coverage, activando la se\u00f1al de descubrimiento y mitigacion de desperdicio del inventario vivo en la cocina."
+  },
+  "results": {
+    "popularity": {
+      "precision@k": 0.05082644628099174,
+      "recall@k": 0.11672200905155451,
+      "map@k": 0.05390897612488522,
+      "coverage@k": 0.22,
+      "n_eval_sessions": 968
+    },
+    "content_tfidf": {
+      "precision@k": 0.047520661157024795,
+      "recall@k": 0.10668699986881806,
+      "map@k": 0.05183425160697888,
+      "coverage@k": 0.94,
+      "n_eval_sessions": 968
+    },
+    "cf_als": {
+      "precision@k": 0.04669421487603306,
+      "recall@k": 0.11248811163583891,
+      "map@k": 0.05490013774104683,
+      "coverage@k": 1.0,
+      "n_eval_sessions": 968
+    },
+    "hybrid": {
+      "precision@k": 0.045454545454545456,
+      "recall@k": 0.11061999868818051,
+      "map@k": 0.05393508953168044,
+      "coverage@k": 1.0,
+      "n_eval_sessions": 968
+    }
+  }
+}

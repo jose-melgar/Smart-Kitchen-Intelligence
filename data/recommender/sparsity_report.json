@@ -1,0 +1,130 @@
+[
+  {
+    "matrix": "R_restock_bin",
+    "shape": [
+      1177,
+      50
+    ],
+    "nnz": 10260,
+    "density": 0.17434154630416313,
+    "sparsity": 0.8256584536958369,
+    "row_nnz_mean": 8.717077315208156,
+    "row_nnz_min": 3,
+    "row_nnz_max": 27,
+    "col_nnz_mean": 205.2,
+    "col_nnz_min": 180,
+    "col_nnz_max": 233
+  },
+  {
+    "matrix": "R_restock_count",
+    "shape": [
+      1177,
+      50
+    ],
+    "nnz": 10260,
+    "density": 0.17434154630416313,
+    "sparsity": 0.8256584536958369,
+    "row_nnz_mean": 8.717077315208156,
+    "row_nnz_min": 3,
+    "row_nnz_max": 27,
+    "col_nnz_mean": 205.2,
+    "col_nnz_min": 180,
+    "col_nnz_max": 233
+  },
+  {
+    "matrix": "R_restock_qty",
+    "shape": [
+      1177,
+      50
+    ],
+    "nnz": 10260,
+    "density": 0.17434154630416313,
+    "sparsity": 0.8256584536958369,
+    "row_nnz_mean": 8.717077315208156,
+    "row_nnz_min": 3,
+    "row_nnz_max": 27,
+    "col_nnz_mean": 205.2,
+    "col_nnz_min": 180,
+    "col_nnz_max": 233
+  },
+  {
+    "matrix": "R_restock_freq",
+    "shape": [
+      1177,
+      50
+    ],
+    "nnz": 10260,
+    "density": 0.17434154630416313,
+    "sparsity": 0.8256584536958369,
+    "row_nnz_mean": 8.717077315208156,
+    "row_nnz_min": 3,
+    "row_nnz_max": 27,
+    "col_nnz_mean": 205.2,
+    "col_nnz_min": 180,
+    "col_nnz_max": 233
+  },
+  {
+    "matrix": "R_kitchen_bin",
+    "shape": [
+      8075,
+      50
+    ],
+    "nnz": 13707,
+    "density": 0.03394922600619195,
+    "sparsity": 0.966050773993808,
+    "row_nnz_mean": 1.6974613003095975,
+    "row_nnz_min": 1,
+    "row_nnz_max": 22,
+    "col_nnz_mean": 274.14,
+    "col_nnz_min": 246,
+    "col_nnz_max": 312
+  },
+  {
+    "matrix": "R_kitchen_count",
+    "shape": [
+      8075,
+      50
+    ],
+    "nnz": 13707,
+    "density": 0.03394922600619195,
+    "sparsity": 0.966050773993808,
+    "row_nnz_mean": 1.6974613003095975,
+    "row_nnz_min": 1,
+    "row_nnz_max": 22,
+    "col_nnz_mean": 274.14,
+    "col_nnz_min": 246,
+    "col_nnz_max": 312
+  },
+  {
+    "matrix": "R_household_bin",
+    "shape": [
+      10,
+      50
+    ],
+    "nnz": 500,
+    "density": 1.0,
+    "sparsity": 0.0,
+    "row_nnz_mean": 50.0,
+    "row_nnz_min": 50,
+    "row_nnz_max": 50,
+    "col_nnz_mean": 10.0,
+    "col_nnz_min": 10,
+    "col_nnz_max": 10
+  },
+  {
+    "matrix": "R_household_count",
+    "shape": [
+      10,
+      50
+    ],
+    "nnz": 500,
+    "density": 1.0,
+    "sparsity": 0.0,
+    "row_nnz_mean": 50.0,
+    "row_nnz_min": 50,
+    "row_nnz_max": 50,
+    "col_nnz_mean": 10.0,
+    "col_nnz_min": 10,
+    "col_nnz_max": 10
+  }
+]

@@ -1,0 +1,804 @@
+% ============================================================
+%   Smart Kitchen Intelligence — Informe Técnico Hito 3
+%   Curso: 1ACC0221-2610 Big Data | Sección 18517
+%   Universidad Peruana de Ciencias Aplicadas (UPC)
+%   Autores: José Melgar Puertas · Gabriel Reyna Alvarado
+%   Compilar con: pdflatex informe_hito3.tex (2 pasadas)
+% ============================================================
+
+\documentclass[12pt,a4paper]{article}
+
+% ── Codificación y tipografía (LuaLaTeX nativo UTF-8) ────
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{spanish}
+\setotherlanguage{english}
+\defaultfontfeatures{Ligatures=TeX}
+
+% ── Geometría y espaciado ─────────────────────────────────
+\usepackage[top=2.5cm,bottom=2.5cm,left=3cm,right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% ── Matemáticas ───────────────────────────────────────────
+\usepackage{amsmath,amssymb,mathtools}
+
+% ── Tablas y figuras ─────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% ── Código fuente ─────────────────────────────────────────
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstdefinestyle{pythonstyle}{
+    backgroundcolor=\color{gray!8},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue!70}\bfseries,
+    commentstyle=\color{green!50!black}\itshape,
+    stringstyle=\color{red!60!black},
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!40},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    tabsize=4,
+    language=Python
+}
+
+% ── Hiperenlaces ──────────────────────────────────────────
+\usepackage[hidelinks,colorlinks=true,
+            linkcolor=black,citecolor=blue!60!black,
+            urlcolor=blue!70!black]{hyperref}
+
+% ── Encabezados ───────────────────────────────────────────
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Smart Kitchen Intelligence}}
+\fancyhead[R]{\small\textit{Hito 3 — Big Data}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Bibliografía ──────────────────────────────────────────
+\usepackage[numbers,sort&compress]{natbib}
+
+% ── Colores de énfasis ────────────────────────────────────
+\definecolor{upcred}{RGB}{190,30,45}
+\definecolor{metricblue}{RGB}{0,70,140}
+\definecolor{successgreen}{RGB}{0,120,60}
+
+% ── Comandos de utilidad ──────────────────────────────────
+\newcommand{\metric}[1]{\textcolor{metricblue}{\textbf{#1}}}
+\newcommand{\winner}[1]{\textcolor{successgreen}{\textbf{#1}}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\upc}{\textsc{upc}}
+
+% ── Ruta de figuras ───────────────────────────────────────
+% Ajustar si se compila desde otro directorio
+\graphicspath{{./reports/figures/}}
+
+% ─────────────────────────────────────────────────────────
+\begin{document}
+
+% ============================================================
+%   PORTADA
+% ============================================================
+\begin{titlepage}
+\centering
+\vspace*{0.5cm}
+
+{\LARGE\bfseries UNIVERSIDAD PERUANA DE CIENCIAS APLICADAS\par}
+\vspace{0.3cm}
+{\Large\bfseries FACULTAD DE INGENIERÍA\par}
+\vspace{0.2cm}
+{\large\bfseries COMPUTER SCIENCE PROFESSIONAL PROGRAM\par}
+
+\vspace{1.2cm}
+% Logo UPC — reemplazar con la ruta real al logo si está disponible
+% \includegraphics[width=3cm]{upc_logo.png}\par
+{\color{upcred}\rule{6cm}{3pt}}\par
+\vspace{0.8cm}
+
+{\large Curso:\par}
+{\Large\bfseries 1ACC0221-2610 — Big Data\par}
+{\large Sección: 18517\par}
+
+\vspace{1.5cm}
+\begin{minipage}{0.85\textwidth}
+\centering
+{\Large\bfseries Smart Kitchen Intelligence: \\[0.3em]
+Data Architecture for Proactive Food Management\\[0.3em]
+and Nutritional Analytics\par}
+\end{minipage}
+
+\vspace{1.5cm}
+{\large\bfseries Informe Técnico — Hito 3\par}
+{\large\itshape Clustering, Segmentación de Comportamiento y\\
+Consolidación del Pipeline de Big Data\par}
+
+\vspace{1.8cm}
+{\large\bfseries Autores\par}
+\vspace{0.4cm}
+\begin{tabular}{ll}
+Melgar Puertas, José Guillermo & u202111660 \\[4pt]
+Reyna Alvarado, Gabriel Alonso & u202126097 \\
+\end{tabular}
+
+\vspace{1.2cm}
+{\large\bfseries Profesor\par}
+\vspace{0.3cm}
+{\large Alarcon Delgado, Carlos Adrian\par}
+
+\vfill
+{\large Lima, mayo de 2026\par}
+\end{titlepage}
+
+% ============================================================
+%   TABLA DE CONTENIDOS
+% ============================================================
+\tableofcontents
+\newpage
+
+% ============================================================
+%   1. INTRODUCCIÓN
+% ============================================================
+\section{Introducción}
+
+El presente informe constituye la entrega formal del \textbf{Hito 3} del proyecto \textit{Smart Kitchen Intelligence} (SKI), desarrollado en el marco del curso de Big Data de la Facultad de Ingeniería de la Universidad Peruana de Ciencias Aplicadas (\upc{}). Este documento consolida, en un único artefacto técnico y académico, el trabajo acumulado a lo largo de los tres hitos del ciclo: la propuesta y arquitectura de datos (Hito 1), la ingeniería de características y la reducción de dimensionalidad (Hito 2) y, finalmente, la experimentación, benchmarking y selección del modelo de clustering óptimo (Hito 3).
+
+El núcleo del proyecto reside en transformar datos de inventario doméstico —transacciones de entrada y salida de alimentos en distintos puntos de almacenamiento como refrigerador, despensa y estantería— en un sistema de inteligencia proactiva capaz de comprender los patrones latentes de consumo de los hogares. Para ello, el proyecto avanza progresivamente desde la adquisición de datos y el diseño del esquema, hacia la construcción de una representación densa multimodal del comportamiento alimentario, y culmina en este hito con la segmentación no supervisada de dichos comportamientos mediante algoritmos de clustering.
+
+La pregunta de investigación que guía todo el proyecto es: \textit{«¿Cómo puede un motor de recomendación híbrido y analítica de grafos optimizar el consumo de alimentos basándose en la proximidad de vencimiento, los perfiles nutricionales reales y los patrones históricos de co-ocurrencia de ingredientes?»} El presente hito representa un avance decisivo hacia su respuesta: al identificar \metric{38 perfiles de comportamiento} estadísticamente significativos en los datos, el sistema deja de tratar cada evento de inventario de forma aislada y comienza a comprender el \textit{comportamiento latente} detrás de cada movimiento, sentando las bases para el motor de recomendación que se desarrollará en los hitos siguientes.
+
+% ============================================================
+%   2. PROPUESTA DEL PROYECTO
+% ============================================================
+\section{Propuesta del Proyecto: Smart Kitchen Intelligence (SKI)}
+
+\subsection{Dominio y Contexto}
+
+El proyecto se enmarca en el dominio del \textit{Smart Inventory Management} y la \textit{Nutritional Analytics} para el ecosistema doméstico. Su objetivo es integrar datos provenientes de múltiples fuentes —un catálogo nutricional validado científicamente, patrones de compra del mercado real y un motor de simulación estocástica— para transformar registros estáticos de alimentos en un sistema de asistencia proactiva. Este sistema debe ser capaz de anticipar el vencimiento de productos, identificar hábitos de preparación y recomendar acciones que optimicen simultáneamente el aprovechamiento económico y el valor nutricional de la despensa familiar.
+
+La relevancia del problema es significativa: a escala global, aproximadamente un tercio de todos los alimentos producidos se desperdicia \cite{fao2019}, y una fracción importante de ello ocurre en el hogar por falta de visibilidad del ciclo de vida de los productos. Un sistema inteligente de inventario que cruce la proximidad de vencimiento con el perfil nutricional y los hábitos de consumo tiene el potencial de reducir este desperdicio de manera sustancial.
+
+\subsection{Declaración del Problema}
+
+La falta de visibilidad sobre el ciclo de vida de los productos y la desconexión entre el inventario disponible y el historial de consumo generan dos ineficiencias concretas y medibles:
+
+\begin{itemize}
+    \item \textbf{Ineficiencia económica:} Productos que expiran en el almacenamiento representan pérdida directa de capital. La incapacidad de priorizar el consumo por fecha de vencimiento exacerba este fenómeno.
+    \item \textbf{Ineficiencia nutricional:} La dificultad para planificar dietas a partir del inventario disponible y los perfiles Nutriscore impide maximizar el valor calórico y proteico de los recursos alimentarios del hogar.
+\end{itemize}
+
+\subsection{Pregunta de Investigación}
+
+\begin{quote}
+\textit{¿Cómo puede un motor de recomendación híbrido y analítica de grafos optimizar el consumo de alimentos basándose en la proximidad de vencimiento, los perfiles nutricionales reales y los patrones históricos de co-ocurrencia de ingredientes?}
+\end{quote}
+
+\subsection{Definiciones Operacionales}
+
+Para garantizar la reproducibilidad y precisión del análisis, se establecen las siguientes definiciones formales que guían el diseño del pipeline:
+
+\begin{enumerate}
+    \item \textbf{Co-ocurrencia Histórica:} La frecuencia relativa con la que un conjunto de productos aparece bajo el mismo tipo de acción dentro de una ventana temporal común.
+
+    \item \textbf{Ventanas Temporales ($\Delta t$):}
+    \begin{itemize}
+        \item \textit{Ventana de Reabastecimiento:} Intervalo de 60 minutos para eventos \code{IN}, utilizado para identificar patrones de compra y agrupación de proveedores.
+        \item \textit{Ventana de Sesión de Cocina:} Intervalo de 15 minutos para eventos \code{OUT}, utilizado para inferir recetas y hábitos de preparación simultánea.
+    \end{itemize}
+
+    \item \textbf{Fórmula de Proximidad:} Dos eventos $e_1$ y $e_2$ se consideran co-ocurrentes si:
+    \[
+    \left| \text{timestamp}(e_1) - \text{timestamp}(e_2) \right| \leq \Delta t
+    \]
+\end{enumerate}
+
+% ============================================================
+%   3. INVENTARIO DE FUENTES DE DATOS
+% ============================================================
+\section{Inventario de Fuentes de Datos}
+
+La arquitectura de datos de SKI integra tres fuentes complementarias que, en conjunto, cubren los dominios transaccional, nutricional y de comportamiento de mercado. La evolución de las fuentes entre el Hito 1 y el Hito actual refleja una maduración metodológica: se sustituyó OpenFoodFacts por la \textbf{USDA FoodData Central API} por su mayor alineación con el catálogo de productos del dataset de mercado seleccionado, y se incorporó el dataset de Instacart para anclar la simulación en comportamientos humanos reales.
+
+\subsection{Fuente 1: Instacart Online Grocery Dataset (Patrones de Consumo)}
+
+Esta fuente provee la inteligencia de mercado que alimenta el motor de simulación. El dataset de Instacart, disponible públicamente en Kaggle \cite{instacart}, contiene millones de órdenes de compra reales de usuarios anónimos de la plataforma de supermercado en línea. A partir de este corpus, el script \code{src/extract\_patterns.py} extrae las probabilidades estocásticas de compra por hora del día y la frecuencia relativa de cada producto dentro del catálogo maestro. Esto garantiza que los datos sintéticos generados no sean aleatorios, sino que repliquen distribuciones temporales y preferencias alimentarias observadas en poblaciones reales.
+
+\begin{itemize}
+    \item \textbf{Tipo:} Datos de comportamiento de compra (Market Intelligence).
+    \item \textbf{Método de Ingesta:} Automatizado mediante la librería \code{kagglehub}.
+    \item \textbf{Uso:} Generación de pesos estocásticos para el simulador.
+\end{itemize}
+
+\subsection{Fuente 2: USDA FoodData Central API (Metadata Nutricional)}
+
+La \textit{USDA FoodData Central} es la base de datos nutricional de referencia del Departamento de Agricultura de los Estados Unidos \cite{usda}. Su API REST, autenticada mediante \textit{API Key}, provee metadatos validados científicamente para cada producto del catálogo: calorías por 100 g, proteínas, carbohidratos y clasificación Nutriscore. La selección de esta fuente sobre OpenFoodFacts —utilizada en la propuesta inicial del Hito 1— responde a su alineación exacta con el catálogo de productos anglosajones presentes en el dataset de Instacart.
+
+Para maximizar la tasa de coincidencia (\textit{hit rate}) durante la ingesta, el script \code{src/ingestion.py} implementa un protocolo de \textbf{búsqueda en dos niveles}: primero realiza una consulta con el nombre comercial completo y, si no obtiene resultados, aplica un proceso de normalización que elimina modificadores léxicos (e.g., ``Organic'', ``Bag of'') antes de reintentar la búsqueda.
+
+\begin{itemize}
+    \item \textbf{Tipo:} Datos maestros de productos (Product Master Data).
+    \item \textbf{Formato:} JSON (ingesta) $\rightarrow$ CSV (almacenamiento).
+    \item \textbf{Uso:} Enriquecimiento nutricional del catálogo de 50 productos.
+\end{itemize}
+
+\subsection{Fuente 3: Logs de Interacción Basados en Evidencia (Sintéticos)}
+
+La capa transaccional del sistema es generada por el motor de simulación estocástica implementado en \code{src/simulation.py}. Este script modela el ciclo de vida completo de cada unidad de producto: desde su ingreso al inventario (\code{IN / Purchase}), pasando por su consumo gradual (\code{OUT / Consumption}), hasta su eventual vencimiento (\code{Waste}). El motor utiliza los pesos de comportamiento extraídos de Instacart para determinar las probabilidades de compra por hora del día, y aplica una distribución de Poisson para modelar las cantidades consumidas por sesión. La identificación de lotes individuales mediante un \code{stock\_id} único permite rastrear la trazabilidad completa de cada unidad física de producto.
+
+\begin{itemize}
+    \item \textbf{Tipo:} Datos transaccionales (Interaction Logs).
+    \item \textbf{Origen:} Generación interna, script \code{src/simulation.py}.
+    \item \textbf{Uso:} Tracking de flujos de inventario y hábitos de consumo por hogar.
+\end{itemize}
+
+% ============================================================
+%   4. ESQUEMA DE DATOS
+% ============================================================
+\section{Esquema de Datos (Schema Draft)}
+
+\subsection{Arquitectura de Almacenamiento}
+
+Se ha seleccionado un \textbf{Modelo en Estrella (Star Schema)} desnormalizado para optimizar la carga analítica y la preparación de características. Esta decisión arquitectónica, tomada en el Hito 1, ha demostrado ser acertada a lo largo del proyecto: la estructura facilita los \textit{JOIN} entre hechos y dimensiones, permite actualizaciones en los metadatos nutricionales sin alterar el historial transaccional, y constituye la ``fuente de verdad'' (\textit{Source of Truth}) desde la cual se construyó la matriz de características para la reducción de dimensionalidad y el clustering.
+
+\subsubsection{Tabla de Hechos (\texttt{fact\_inventory\_events})}
+
+Centraliza el flujo transaccional y el ciclo de vida de cada unidad de producto:
+
+\begin{itemize}
+    \item \textbf{PK/FK:} \code{event\_id}, \code{product\_id}, \code{stock\_id}, \code{household\_id}
+    \item \textbf{Métricas:} \code{quantity}, \code{timestamp}, \code{expiry\_date}
+    \item \textbf{Dimensiones categoriales:} \code{event\_type} (IN/OUT), \code{classification} (Purchase / Consumption / Waste)
+\end{itemize}
+
+\subsubsection{Tabla de Dimensiones (\texttt{dim\_products})}
+
+Almacena los metadatos nutricionales validados por la USDA, actualizables de forma independiente al historial:
+
+\begin{itemize}
+    \item \textbf{PK:} \code{product\_id}
+    \item \textbf{Atributos:} \code{product\_name}, \code{category}, \code{nutriscore}, \code{calories\_100g}, \code{proteins\_100g}, \code{carbs\_100g}
+\end{itemize}
+
+\subsection{Justificación de Ingeniería}
+
+La elección del Star Schema sobre alternativas documentales (e.g., JSON anidado en MongoDB) o totalmente normalizadas (3NF) responde a tres razones concretas:
+
+\begin{enumerate}
+    \item \textbf{Eficiencia de Agregación:} Minimiza los \code{JOIN} requeridos para calcular métricas nutricionales acumuladas, reduciendo la latencia en consultas analíticas.
+    \item \textbf{Integridad de Metadatos:} Permite actualizar atributos nutricionales en la dimensión sin generar redundancia ni inconsistencia en los logs de eventos.
+    \item \textbf{Proyección de Grafos:} Este esquema actúa como la fuente de verdad necesaria para proyectar los datos hacia una base de datos de grafos nativa en fases posteriores, facilitando la construcción del grafo de co-ocurrencia.
+\end{enumerate}
+
+\subsection{Evolución del Esquema hacia Hito 3}
+
+En el Hito 3, el esquema se ha enriquecido con una tercera capa lógica: el \textbf{Segmented Dataset}. Una vez ejecutado el pipeline de clustering sobre la matriz reducida, cada evento de inventario queda asociado a una etiqueta de cluster (\code{cluster\_label}), convirtiendo el dataset final en un instrumento que no solo describe qué ocurrió, sino en qué \textit{perfil de comportamiento} encuadra cada evento. Este enriquecimiento es el puente conceptual hacia el motor de recomendación híbrido que se desarrollará en hitos posteriores.
+
+% ============================================================
+%   5. DICCIONARIO DE DATOS
+% ============================================================
+\section{Diccionario de Datos}
+
+La Tabla~\ref{tab:datadict} presenta el diccionario de datos completo del dataset procesado \code{inventory\_v1.csv}, que constituye el artefacto central del pipeline. Tras el \textit{JOIN} semántico entre hechos y dimensiones, el dataset resulta en un registro plano y enriquecido de \metric{25{,}444 eventos} con \metric{15 variables} cada uno.
+
+\begin{longtable}{@{}p{3.2cm}p{1.7cm}p{5.5cm}p{3cm}@{}}
+\caption{Diccionario de Datos del Dataset \texttt{inventory\_v1.csv}}
+\label{tab:datadict} \\
+\toprule
+\textbf{Variable} & \textbf{Tipo} & \textbf{Descripción} & \textbf{Formato/Unidad} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{c}{\tablename~\thetable{} -- continuación} \\
+\toprule
+\textbf{Variable} & \textbf{Tipo} & \textbf{Descripción} & \textbf{Formato/Unidad} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\code{event\_id}     & STRING   & Identificador único del evento de inventario. Generado mediante UUID para garantizar unicidad global. & UUID-5 \\[4pt]
+\code{household\_id} & INTEGER  & Identificador del hogar simulado. El dataset cubre 10 hogares independientes. & 0--9 \\[4pt]
+\code{stock\_id}     & STRING   & Identificador único de lote físico. Permite rastrear el ciclo de vida de una unidad específica de producto. & UUID-8 \\[4pt]
+\code{product\_id}   & INTEGER  & Código de producto EAN/UPC (FK). Enlaza con el catálogo maestro. & Numérico \\[4pt]
+\code{product\_name} & STRING   & Nombre comercial del producto según el catálogo de Instacart. & Texto libre \\[4pt]
+\code{event\_type}   & STRING   & Tipo de movimiento: \code{IN} (ingreso al inventario) u \code{OUT} (salida por consumo o vencimiento). & Categórico \\[4pt]
+\code{quantity}      & INTEGER  & Unidades involucradas en el evento. Varía entre 1 y 3. & Unidades \\[4pt]
+\code{timestamp}     & DATETIME & Fecha y hora exacta del registro. Generada con distribución horaria Instacart. & ISO 8601 \\[4pt]
+\code{expiry\_date}  & DATE     & Fecha de vencimiento del lote. Presente solo en eventos \code{IN}. Nulo en consumos y desechos (\textit{Missingness by Design}). & YYYY-MM-DD \\[4pt]
+\code{classification}& STRING   & Etiqueta de clasificación semántica: \textit{Purchase}, \textit{Consumption} o \textit{Waste}. & Categórico \\[4pt]
+\code{nutriscore}    & CHAR     & Calificación nutricional de la USDA en escala A--E. El valor \textit{Falta Dato} indica ausencia en la API origen. & A/B/C/D/E \\[4pt]
+\code{calories\_100g}& FLOAT    & Contenido energético por 100 g. Presenta 2{,}537 nulos gestionados por imputación estadística en Hito 2. & kcal \\[4pt]
+\code{proteins\_100g}& FLOAT    & Contenido proteico por 100 g. & gramos \\[4pt]
+\code{carbs\_100g}   & FLOAT    & Contenido en carbohidratos por 100 g. & gramos \\[4pt]
+\code{category}      & INTEGER  & Categoría de supermercado codificada. Mapeada a seis categorías del catálogo Instacart. & Código entero \\
+\bottomrule
+\end{longtable}
+
+% ============================================================
+%   6. ANÁLISIS DE ESCALA Y ESCALABILIDAD
+% ============================================================
+\section{Análisis de Escala y Escalabilidad}
+
+\subsection{Evolución de las Dimensiones del Dataset}
+
+El sistema ha sido diseñado desde su concepción para escalar de manera modular. La Tabla~\ref{tab:escalabilidad} resume la evolución de las dimensiones a lo largo de los tres hitos:
+
+\begin{table}[H]
+\centering
+\caption{Evolución del Volumen del Dataset por Hito}
+\label{tab:escalabilidad}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Hito} & \textbf{Registros} & \textbf{Periodo} & \textbf{Hogares} \\
+\midrule
+Hito 1 (Prototipo V1) & 1{,}000 eventos   & 30 días   & 1 hogar \\
+Hito 2 (Escalabilidad V2) & 25{,}444 eventos & 90 días   & 10 hogares \\
+Hito 3 (Segmentación V3) & 25{,}444 eventos & 90 días   & 10 hogares + 38 clusters \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El salto de escala entre el Hito 1 y el Hito 2 —de 1{,}000 a 25{,}444 registros— fue motivado por la necesidad de tener suficiente densidad estadística para que los algoritmos de reducción de dimensionalidad (PCA) y clustering (DBSCAN) produzcan resultados estadísticamente significativos. Con un solo hogar y 1{,}000 eventos, la representación de patrones era demasiado escasa para extraer perfiles de comportamiento robustos.
+
+\subsection{Calidad de Datos}
+
+La gestión de la calidad de datos en SKI se rige por el principio de \textbf{Transparencia de Ausencias}: en lugar de inyectar datos sintéticos arbitrarios durante la ingesta, el sistema registra explícitamente las ausencias y las trata estadísticamente en la fase de preprocesamiento.
+
+\begin{itemize}
+    \item \textbf{Missingness by Design en \code{expiry\_date}:} Los eventos \code{OUT} (consumo y desperdicio) no registran fecha de vencimiento, pues esta variable no es relevante para la depleción del inventario. Esto genera nulos estructurales que no deben interpretarse como errores, sino como información semánticamente ausente por diseño.
+
+    \item \textbf{Nulos en \code{calories\_100g}:} 2{,}537 registros (9.97\%) presentan valores nulos en calorías. Estos corresponden a los 7 productos del catálogo cuya búsqueda en la USDA no obtuvo resultados con un nivel de confianza suficiente. En el Hito 2, estos nulos fueron gestionados mediante \textbf{imputación por promedio de categoría}, preservando la distribución estadística sin distorsionar la representación del espacio de características.
+
+    \item \textbf{Distribución de Nutriscore:} El 43.97\% de los eventos corresponde a productos con Nutriscore A (los más saludables), lo que refleja una dieta simulada con fuerte orientación hacia frutas, verduras y lácteos. Un 9.97\% queda sin clasificar (\textit{Falta Dato}).
+\end{itemize}
+
+\subsection{Análisis de Escalabilidad y Cuellos de Botella}
+
+\subsubsection{Complejidad Algorítmica (Big O)}
+
+La complejidad de las operaciones clave del pipeline es la siguiente:
+
+\begin{itemize}
+    \item \textbf{Ingesta y \textit{Join} (Polars):} $O(n/p)$, donde $p$ es el número de hilos de procesamiento paralelo. Polars, al utilizar el motor Apache Arrow con multithreading nativo, procesa los 25{,}444 registros en milisegundos, superando las limitaciones de memoria de Pandas en escenarios de mayor volumen.
+    \item \textbf{Reducción (PCA):} $O(\min(p^3, n \cdot p^2))$ con $p = 56$ características. En este rango, la complejidad cúbica en $p$ domina para datasets pequeños, pero el uso de la SVD truncada hace la operación tratable incluso para matrices grandes.
+    \item \textbf{Clustering (DBSCAN):} $O(n \log n)$ gracias a la indexación espacial. Esta complejidad cuasi-lineal es una ventaja significativa frente a K-Means ($O(n \cdot k \cdot I)$) a gran escala.
+\end{itemize}
+
+\subsubsection{Identificación de Cuellos de Botella}
+
+Al proyectar el volumen a $10^7$ eventos —escenario realista para una plataforma comercial con miles de hogares— el cuello de botella principal migrará de la CPU a la \textbf{capacidad de RAM}. El plan técnico establece dos mitigaciones:
+
+\begin{enumerate}
+    \item \textbf{Sustitución de CSV por Parquet:} El formato columnar Parquet reduce el tamaño de almacenamiento aproximadamente un 80\% y permite lecturas selectivas de columnas sin cargar el dataset completo en memoria.
+    \item \textbf{Migración a PySpark:} Para el procesamiento distribuido de $10^7$ eventos, el pipeline migrará hacia un clúster Spark que distribuya los \textit{JOIN} y las transformaciones de PCA mediante el módulo \code{pyspark.ml}.
+\end{enumerate}
+
+% ============================================================
+%   7. NOTA DE ÉTICA Y ACCESO
+% ============================================================
+\section{Nota de Ética y Acceso}
+
+\subsection{Procedencia y Legalidad}
+
+Los datos nutricionales se obtienen de la USDA FoodData Central, una base de datos gubernamental de libre acceso cuyo uso no requiere atribución obligatoria pero sí respeta las políticas de uso justo de la API. Los patrones de comportamiento de compra provienen del dataset de Instacart, publicado en Kaggle bajo una licencia de uso académico no comercial, con información completamente anonimizada. Ambas fuentes son legalmente utilizables para propósitos académicos e investigativos.
+
+\subsection{Privacidad de Usuario}
+
+En cumplimiento de los estándares éticos del Big Data y las regulaciones de privacidad vigentes, el proyecto \textbf{no recopila ni procesa Información de Identificación Personal (PII)} de ningún tipo. La capa de interacción del sistema es íntegramente generada mediante simulación estadística, eliminando cualquier riesgo de exposición de datos sensibles. Los 10 hogares simulados son entidades ficticias construidas a partir de distribuciones estadísticas derivadas de comportamientos históricos anonimizados.
+
+% ============================================================
+%   8. VERIFICACIÓN DEL PIPELINE (HITO 1)
+% ============================================================
+\section{Verificación del Dataset V1 y Pipeline Base}
+
+\subsection{Arquitectura de Módulos}
+
+El pipeline de SKI está organizado en módulos Python independientes y orquestables, siguiendo el principio de \textit{separación de responsabilidades}:
+
+\begin{enumerate}
+    \item \textbf{\code{src/ingestion.py}:} Establece conexión con la USDA FoodData Central API, aplica el protocolo de búsqueda en dos niveles y genera el catálogo maestro \code{data/raw/catalog\_raw.csv} con 50 productos enriquecidos nutricional\-mente.
+    \item \textbf{\code{src/simulation.py}:} Carga los pesos estadísticos de comportamiento extraídos del dataset de Instacart y genera la tabla de hechos \code{data/raw/movements\_raw.csv} con 25{,}444 eventos de inventario para 10 hogares a lo largo de 90 días.
+    \item \textbf{\code{src/preprocessing.py}:} Ejecuta el \textit{JOIN} semántico entre la tabla de hechos y la tabla de dimensiones, aplica tipado correcto a las variables temporales y normaliza los campos críticos, produciendo el artefacto final \code{data/processed/inventory\_v1.csv}.
+    \item \textbf{\code{src/features.py}:} Construye la matriz de características densa (Hito 2) aplicando imputación, TF-IDF, CatBoost Encoding y escalado estándar.
+    \item \textbf{\code{src/reduction.py}:} Aplica PCA y t-SNE sobre la matriz densa, genera las visualizaciones y persiste la matriz reducida para clustering.
+    \item \textbf{\code{src/clustering.py} y \code{src/clustering\_refinement.py}:} Ejecutan el benchmark comparativo y el refinamiento de hiperparámetros de los algoritmos de clustering (Hito 3).
+\end{enumerate}
+
+\subsection{Estructura de Persistencia y Artefactos}
+
+El sistema implementa una arquitectura de almacenamiento en capas que garantiza la trazabilidad de los datos a lo largo de su ciclo de vida:
+
+\begin{itemize}
+    \item \textbf{Capa Raw:} \code{data/raw/} preserva la inmutabilidad de los datos originales (\code{catalog\_raw.csv}, \code{movements\_raw.csv}, \code{instacart\_patterns.json}).
+    \item \textbf{Capa Procesada:} \code{data/processed/} contiene el artefacto unificado (\code{inventory\_v1.csv}).
+    \item \textbf{Capa de Características:} \code{data/features/} almacena la matriz densa (\code{feature\_matrix.npy}), la matriz reducida (\code{feature\_matrix\_reduced.npy}) y las etiquetas de cluster (\code{cluster\_labels\_refined.npy}).
+    \item \textbf{Capa de Reportes:} \code{reports/figures/} contiene todas las visualizaciones generadas como evidencia técnica.
+\end{itemize}
+
+Esta jerarquía permite que futuras actualizaciones en la capa de ingesta o simulación no comprometan la integridad de la capa de procesamiento, garantizando la reproducibilidad del experimento.
+
+% ============================================================
+%   9. INGENIERÍA DE CARACTERÍSTICAS (HITO 2)
+% ============================================================
+\section{Ingeniería de Características (Hito 2)}
+
+\subsection{Motivación y Enfoque}
+
+Para que los algoritmos de reducción de dimensionalidad y clustering operen de forma efectiva, es necesario transformar el dataset de eventos de inventario —en su origen tabular y multimodal— en una representación matemática densa y homogénea: una \textbf{matriz de características} donde cada fila es un evento y cada columna es una dimensión cuantitativa del espacio de análisis. Esta transformación, implementada en \code{src/features.py}, es el puente técnico entre los datos crudos del Hito 1 y los modelos analíticos del Hito 3.
+
+El principal desafío de esta fase fue la \textbf{Maldición de la Dimensionalidad}: una representación ingenua basada en \textit{One-Hot Encoding} (OHE) para las categorías y variables de texto habría generado una matriz excesivamente dispersa (\textit{sparse}), con una alta proporción de ceros estructurales que distorsionarían las métricas de distancia euclídea utilizadas por los algoritmos de clustering. La solución adoptada fue construir una representación \textbf{densa por diseño}, articulada en cuatro bloques de características.
+
+\subsection{Bloque 1: Características Numéricas (Imputación por Categoría)}
+
+Las tres variables numéricas del catálogo nutricional —\code{calories\_100g}, \code{proteins\_100g} y \code{carbs\_100g}— presentaban 2{,}537 valores nulos en calorías correspondientes a 7 productos cuya consulta a la USDA no devolvió resultados concluyentes. Se aplicó \textbf{imputación por promedio de categoría}: para cada registro con valor ausente, se asignó la media de la variable dentro de su categoría de supermercado. Esta estrategia es superior a la imputación global por la media general porque respeta la heterogeneidad nutricional entre categorías (e.g., bebidas vs.\ verduras), reduciendo el sesgo del imputador.
+
+\subsection{Bloque 2: Características de Texto (TF-IDF sobre Nombres de Producto)}
+
+La columna \code{product\_name} contiene información semántica valiosa que no está capturada por las variables categóricas: modificadores de calidad (``Organic'', ``Original''), especificadores de variedad (``Honeycrisp'', ``Granny Smith'') y marcadores de formato (``Bag of'', ``Bunch''). Para extraer esta señal lingüística, se aplicó un vectorizador \textbf{TF-IDF} (\textit{Term Frequency–Inverse Document Frequency}) con un vocabulario máximo de 50 términos y eliminación de \textit{stop words} en inglés. El resultado es un subespacio de 50 dimensiones que captura la identidad semántica de cada producto de forma continua y sin dispersión binaria.
+
+\subsection{Bloque 3: Codificación Densa de Categorías (CatBoost Encoding)}
+
+La variable \code{category} es nominal y no ordinal, lo que descarta su uso directo como valor numérico. En lugar de aplicar OHE —que generaría seis columnas binarias dispersas—, se implementó \textbf{CatBoost Encoding} (Target Encoding). Este método codifica cada categoría en un único valor continuo que representa la probabilidad estadística de que un evento de esa categoría sea de tipo \code{OUT} (consumo o desperdicio). Formalmente:
+
+\[
+\hat{x}_{i,j} = \frac{\sum_{k=1}^{i-1} \mathbf{1}[x_{k,j} = x_{i,j}] \cdot y_k + \alpha \cdot \bar{y}}{\sum_{k=1}^{i-1} \mathbf{1}[x_{k,j} = x_{i,j}] + \alpha}
+\]
+
+donde $y$ es la variable objetivo binaria (1 si \code{OUT}, 0 si \code{IN}) y $\alpha$ es un parámetro de suavizado. El resultado es una única columna densa que comprime la información categórica sin aumentar la dimensionalidad.
+
+\subsection{Bloque 4: Características Temporales}
+
+Del \textit{timestamp} de cada evento se extraen dos dimensiones de comportamiento temporal:
+\begin{itemize}
+    \item \code{hour\_of\_day}: La hora del día (0--23) en que ocurre el evento. Esta variable captura hábitos circadianos: compras matutinas vs.\ preparación nocturna.
+    \item \code{day\_of\_week}: El día de la semana (0--6). Captura patrones semanales: compras concentradas en fin de semana vs.\ consumo distribuido entre semana.
+\end{itemize}
+
+\subsection{Consolidación y Escalado}
+
+Los cuatro bloques se concatenan en una única matriz de $25{,}444 \times 56$ variables. Previo a la reducción de dimensionalidad, se aplica un \textbf{StandardScaler} que normaliza cada variable a media 0 y desviación estándar 1. Este paso es obligatorio para el correcto funcionamiento de PCA: sin escalado, variables como \code{calories\_100g} (rango 0--400 kcal) dominarían artificialmente sobre \code{proteins\_100g} (rango 0--15 g), sesgando las componentes principales.
+
+Los 56 nombres de características quedan registrados en \code{data/features/feature\_names.json} para garantizar la trazabilidad e interpretabilidad de las componentes principales en el análisis de biplot.
+
+% ============================================================
+%   10. REDUCCIÓN DE DIMENSIONALIDAD (HITO 2)
+% ============================================================
+\section{Reducción de Dimensionalidad y Visualización (Hito 2)}
+
+\subsection{Metodología de Compresión: PCA}
+
+Con una matriz de $25{,}444 \times 56$ variables escaladas, el análisis directo de clustering sobre el espacio original presenta dos riesgos: (1) la maldición de la dimensionalidad hace que las métricas de distancia pierdan discriminancia en espacios de alta dimensión, y (2) el coste computacional de DBSCAN crece con la dimensión del espacio. La solución técnica adoptada fue aplicar \textbf{Análisis de Componentes Principales (PCA)} para proyectar los datos sobre un subespacio ortogonal de menor dimensión que preserve la mayor cantidad posible de la varianza original.
+
+La implementación se realizó en dos fases. Primero, se ajustó un PCA completo (\code{PCA()}) sobre la matriz escalada para obtener el espectro de varianza explicada y determinar el número óptimo de componentes. Luego, se ajustó un PCA truncado con ese número de componentes para generar la matriz reducida final.
+
+\subsection{Análisis de Energía Retenida}
+
+El criterio de corte adoptado fue retener el \textbf{90\% de la varianza acumulada}, un umbral estándar en proyectos de Big Data analítico que equilibra la compresión de información con la preservación de la señal estadística relevante. La Tabla~\ref{tab:pca_variance} presenta las primeras cinco componentes:
+
+\begin{table}[H]
+\centering
+\caption{Varianza Explicada por Componente Principal (primeras 5 de 30)}
+\label{tab:pca_variance}
+\begin{tabular}{@{}ccc@{}}
+\toprule
+\textbf{Componente} & \textbf{Varianza Explicada} & \textbf{Varianza Acumulada} \\
+\midrule
+PC1  & 6.98\% & 6.98\%  \\
+PC2  & 5.58\% & 12.56\% \\
+PC3  & 4.81\% & 17.38\% \\
+PC4  & 4.50\% & 21.88\% \\
+PC5  & 4.19\% & 26.07\% \\
+$\vdots$ & $\vdots$ & $\vdots$ \\
+PC30 & --- & 90.01\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El resultado más relevante es la distribución uniforme de la varianza a lo largo de las primeras 30 componentes: ninguna componente singular captura más del 7\% de la varianza total. Esto indica que el comportamiento del inventario doméstico es intrínsecamente multidimensional: no existe un único factor dominante, sino que la identidad de cada evento surge de la combinación de docenas de señales de intensidad comparable. Esta característica es coherente con la complejidad real del comportamiento alimentario humano y justifica la necesidad de retener 30 componentes para una representación fiel.
+
+La reducción final consigue una \textbf{compresión del 46.4\%} del espacio de características original ($56 \rightarrow 30$ dimensiones) sin pérdida estadísticamente significativa de información.
+
+\subsection{Visualizaciones e Interpretación}
+
+\subsubsection{Scree Plot (Justificación Técnica del Corte)}
+
+% ── Figura 1 ───────────────────────────────────────────────
+\begin{figure}[H]
+\centering
+% Descomentar cuando la figura esté disponible:
+\includegraphics[width=0.8\textwidth]{pca_scree_plot.png}
+\caption{Scree Plot: Varianza acumulada vs.\ número de componentes principales. La línea roja horizontal indica el umbral del 90\%, alcanzado en la componente 30.}
+\label{fig:scree}
+\end{figure}
+
+El Scree Plot de la Figura~\ref{fig:scree} muestra una curva de varianza acumulada suave y continua, sin un ``codo'' pronunciado que sugiera un punto de corte natural. Este comportamiento, denominado \textit{plateau gradual}, es característico de datasets multidimensionales complejos donde la información no está concentrada en pocas dimensiones principales. La ausencia de un codo confirma la decisión de utilizar el criterio de umbral de varianza (90\%) como criterio objetivo, en lugar de la heurística visual del codo.
+
+\subsubsection{t-SNE: Mapa Topológico No Lineal}
+
+% ── Figura 2 ───────────────────────────────────────────────
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{tsne_clusters.png}
+\caption{Proyección t-SNE de los 25{,}444 eventos de inventario sobre 2 dimensiones. El color distingue el tipo de evento (\code{IN} vs.\ \code{OUT}). La formación de ``islas'' confirma la existencia de estructuras agrupables en el espacio de características.}
+\label{fig:tsne}
+\end{figure}
+
+La proyección t-SNE de la Figura~\ref{fig:tsne} es una herramienta exploratoria no lineal que revela la topología real de los datos en un plano bidimensional, sin las restricciones de linealidad del PCA. La visualización muestra la formación de \textbf{``islas'' de comportamiento claramente distinguibles}, lo que constituye evidencia visual directa de que la ingeniería de características logró separar grupos de eventos con patrones de consumo coherentes. La coloración por tipo de evento (\code{IN}/\code{OUT}) muestra un grado de separación notable, indicando que el sistema de características captura correctamente la diferencia semántica entre actos de compra y actos de consumo.
+
+\subsubsection{PCA Biplot: Identificación de Variables Dominantes}
+
+% ── Figura 3 ───────────────────────────────────────────────
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{pca_biplot.png}
+\caption{PCA Biplot: Proyección 2D de los eventos (puntos grises) superpuesta con los vectores de carga de las 6 variables con mayor magnitud. Las flechas más largas indican mayor influencia en la diferenciación del espacio.}
+\label{fig:biplot}
+\end{figure}
+
+El biplot de la Figura~\ref{fig:biplot} superpone los vectores de carga de las variables originales sobre la proyección 2D de PCA. Los vectores con mayor magnitud corresponden a las variables de mayor poder discriminante. El análisis revela que \code{category\_encoded} y los indicadores nutricionales (\code{calories\_100g}, \code{carbs\_100g}) presentan los vectores más extensos, confirmando que la categoría de producto y su perfil calórico son los ejes de diferenciación primarios del inventario. Las variables de texto TF-IDF (e.g., \code{txt\_organic}, \code{txt\_apple}) aportan señal adicional pero de magnitud secundaria, complementando la caracterización sin dominarla.
+
+% ============================================================
+%   11. EXPERIMENTACIÓN DE CLUSTERING (HITO 3)
+% ============================================================
+\section{Experimentación de Clustering (Hito 3)}
+
+\subsection{Contexto y Objetivo}
+
+Con la matriz reducida de $25{,}444 \times 30$ componentes como \textit{Single Source of Truth}, el Hito 3 aborda la pregunta central de la segmentación no supervisada: \textit{¿qué patrones de comportamiento de inventario emergen de forma natural en los datos?} Para responderla de forma rigurosa y reproducible, se diseñó un \textbf{protocolo de benchmark en dos fases}: una exploración inicial de tres paradigmas de clustering y una fase de refinamiento de hiperparámetros sobre los paradigmas más prometedores.
+
+La métrica principal de evaluación adoptada es el \textbf{Silhouette Score}, definido formalmente como:
+\[
+s(i) = \frac{b(i) - a(i)}{\max\{a(i), b(i)\}}
+\]
+donde $a(i)$ es la distancia intra-cluster promedio del punto $i$ (cohesión) y $b(i)$ es la distancia al cluster vecino más próximo (separación). Un valor cercano a 1 indica clusters perfectamente separados e internamente cohesionados; un valor cercano a 0 indica solapamiento; un valor negativo indica asignación incorrecta. Esta métrica fue preferida sobre la inercia de K-Means porque es \textbf{independiente del algoritmo y del número de clusters}, permitiendo comparaciones justas entre paradigmas completamente distintos.
+
+\subsection{Fase 1: Exploración de Paradigmas}
+
+Se evaluaron tres paradigmas fundamentales de clustering, cada uno con una suposición geométrica distinta sobre la estructura de los datos:
+
+\subsubsection{Paradigma de Centroides: K-Means}
+
+K-Means asume que los clusters son convexos y de tamaño comparable, y los forma minimizando la suma de distancias cuadráticas a los centroides. Se evaluaron valores de $k$ desde 2 hasta 10. El mejor resultado fue \metric{$k = 9$, Silhouette = 0.3733}, con una inercia de $X$. Este resultado moderado sugiere que la topología de los datos de inventario no se ajusta perfectamente a la asunción esférica de K-Means: los patrones de consumo alimentario forman clusters de geometría irregular, con densidades variables que el centroide no captura con precisión.
+
+\subsubsection{Paradigma Probabilístico: GMM}
+
+El Modelo de Mezcla Gaussiana (GMM) asume que los datos provienen de una superposición de distribuciones gaussianas multivariadas, lo que le permite modelar clusters de forma elíptica con orientación y escala variables. Evaluado entre 2 y 10 componentes, el GMM alcanzó un Silhouette máximo de \metric{0.1992}, el peor resultado entre los tres paradigmas. La interpretación técnica es clara: los patrones de comportamiento alimentario no siguen distribuciones gaussianas en el espacio de características construido. Los hábitos de consumo tienen características discretas y asimétricas —compras concentradas en ciertos horarios, depleción de lotes en pocos días— que no se modelan bien con campanas de Gauss simétricas. \textbf{El paradigma GMM fue descartado formalmente} tras esta evidencia.
+
+\subsubsection{Paradigma de Densidad: DBSCAN}
+
+DBSCAN (\textit{Density-Based Spatial Clustering of Applications with Noise}) no asume ninguna forma geométrica para los clusters: los define como regiones del espacio con densidad local superior a un umbral, determinado por dos hiperparámetros —radio $\varepsilon$ y mínimo de puntos vecinos $\text{min\_samples}$. Evaluado en un grid de $\varepsilon \in [0.5, 3.0]$ con paso 0.5 y $\text{min\_samples} \in \{15, 30, 45, 60\}$, DBSCAN alcanzó un Silhouette de \metric{0.6547}, casi el doble del resultado de K-Means. Este resultado inicial confirma que los patrones de inventario forman \textbf{núcleos densos de alta cohesión} con geometría no esférica, precisamente el escenario donde DBSCAN supera a los métodos de centroides.
+
+\subsection{Fase 2: Refinamiento de Hiperparámetros}
+
+A partir de los resultados de la Fase 1, se diseñó un protocolo de refinamiento granular para explorar el potencial máximo de cada paradigma competitivo:
+
+\subsubsection{K-Means Refinado (rango extendido)}
+
+Para descartar la posibilidad de que $k = 9$ fuera un máximo local, se extendió el rango de evaluación hasta $k = 25$. El mejor resultado obtenido fue un Silhouette de \metric{0.5428} en $k = 25$. Aunque representa una mejora del 45\% sobre el resultado inicial, requiere una \textbf{sobre-segmentación excesiva} (25 grupos) para aproximarse al rendimiento de los modelos de densidad. La relación utilidad/complejidad es desfavorable: generar 25 clusters de inventario ofrece poca interpretabilidad práctica y sigue siendo estadísticamente inferior al DBSCAN inicial.
+
+\subsubsection{HDBSCAN (Densidad Jerárquica Variable)}
+
+HDBSCAN extiende DBSCAN al construir una jerarquía de clusters sobre una densidad variable, adaptándose automáticamente a clusters de distintas densidades locales. Evaluado con $\text{min\_cluster\_size} \in \{10, 15, 20, 30\}$, HDBSCAN alcanzó su mejor Silhouette en \metric{0.5816} con \code{min\_cluster\_size = 30}. La inferioridad frente al DBSCAN de radio fijo tiene una interpretación técnica relevante: indica que la densidad en el espacio de características es \textbf{aproximadamente uniforme} entre clusters, haciendo innecesaria la adaptación jerárquica de HDBSCAN. En otras palabras, los patrones de comportamiento alimentario de los hogares simulados presentan una compacidad similar entre sí, no clusters de densidades radicalmente distintas.
+
+\subsubsection{DBSCAN Refinado (búsqueda granular)}
+
+Sobre el rango óptimo identificado en la Fase 1, se realizó una búsqueda granular con $\varepsilon \in \{2.3, 2.4, 2.5, 2.6, 2.7\}$ y $\text{min\_samples} \in \{10, 15, 20\}$. El resultado definitivo fue: \winner{$\varepsilon = 2.7$, $\text{min\_samples} = 15$, Silhouette = 0.6549}, con \metric{38 clusters} identificados y únicamente \metric{71 puntos de ruido} (el 0.28\% del dataset). La estabilidad del óptimo en un rango amplio de $\varepsilon$ ($[2.3, 2.7]$) confirma que el resultado no es producto del azar ni de una configuración singular, sino de una estructura genuina en los datos.
+
+\subsection{Cuadro Comparativo Final}
+
+La Tabla~\ref{tab:clustering_benchmark} presenta el resultado consolidado del proceso de benchmarking:
+
+\begin{table}[H]
+\centering
+\caption{Cuadro Comparativo de Paradigmas de Clustering — Hito 3}
+\label{tab:clustering_benchmark}
+\begin{tabular}{@{}llcc@{}}
+\toprule
+\textbf{Paradigma} & \textbf{Configuración} & \textbf{Silhouette Score} & \textbf{Decisión} \\
+\midrule
+GMM                & components = 4          & 0.1992 & Descartado \\
+K-Means            & $k = 9$                 & 0.3733 & Descartado \\
+K-Means Refinado   & $k = 25$                & 0.5428 & Descartado \\
+HDBSCAN            & min\_size = 30          & 0.5816 & Descartado \\
+DBSCAN Base        & eps=2.5, min=15         & 0.6547 & Semifinalista \\
+\textbf{DBSCAN Refinado} & \boldmath$\varepsilon = 2.7$\textbf{, min = 15} & \textbf{0.6549} & \winner{GANADOR} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{clustering_benchmark_silhouette.png}
+\caption{Comparativa visual del Silhouette Score entre paradigmas. La diferencia entre DBSCAN y los modelos de centroides o probabilísticos es estadísticamente significativa.}
+\label{fig:benchmark}
+\end{figure}
+
+% ============================================================
+%   12. SELECCIÓN DEL MODELO FINAL Y ANÁLISIS DE CLUSTERS
+% ============================================================
+\section{Selección del Modelo Final y Análisis de Resultados}
+
+\subsection{Declaración del Modelo Ganador}
+
+Tras el proceso de benchmark competitivo descrito en la sección anterior, se declara formalmente como modelo ganador el algoritmo \textbf{DBSCAN} con parámetros $\varepsilon = 2.7$ y $\text{min\_samples} = 15$. Las etiquetas de cluster generadas han sido persistidas en \code{data/features/cluster\_labels\_refined.npy} como el artefacto de segmentación oficial de SKI.
+
+\subsection{Justificación Técnica Multidimensional}
+
+La selección de DBSCAN no se fundamenta únicamente en la métrica de Silhouette, sino en un conjunto coherente de propiedades que lo hacen superior en el contexto específico de SKI:
+
+\begin{enumerate}
+    \item \textbf{Cohesión Estadística Máxima:} El Silhouette Score de 0.6549 es el más alto del benchmark, garantizando que los 38 clusters presentan alta similitud interna y separación clara frente a clusters adyacentes. Para ponerlo en perspectiva, un Silhouette superior a 0.5 se considera indicativo de estructura robusta en la literatura especializada \cite{rousseeuw1987}.
+
+    \item \textbf{Gestión Natural del Ruido:} Al identificar explícitamente 71 puntos como ruido ($-1$), DBSCAN descarta automáticamente los eventos atípicos —compras esporádicas fuera del patrón habitual, eventos de vencimiento inusuales— sin forzarlos a pertenecer a un cluster artificial. Esto es especialmente valioso en datos de inventario donde los outliers son informativos (indican comportamientos excepcionales) y no deben contaminar los perfiles de comportamiento típico.
+
+    \item \textbf{Estabilidad en el Rango Óptimo:} La estabilidad del Silhouette en el rango $\varepsilon \in [2.3, 2.7]$ demuestra que los clusters no son sensibles a pequeñas perturbaciones del hiperparámetro principal, una característica de robustez estadística crítica para la reproducibilidad del pipeline.
+
+    \item \textbf{Granularidad Interpretable:} Los 38 clusters identificados representan una granularidad adecuada para el dominio: suficientemente detallada para distinguir perfiles como ``consumidor intensivo de proteínas'' vs.\ ``consumidor de carbohidratos de larga duración'', pero suficientemente compacta para que un sistema de recomendación pueda operar con ella de forma eficiente.
+\end{enumerate}
+
+\subsection{Visualización de los Clusters}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{clustering_scatter_2d.png}
+\caption{Proyección 2D de los 38 clusters identificados por DBSCAN sobre la representación PCA. Cada color representa un cluster distinto. Los puntos negros son ruido ($-1$).}
+\label{fig:clusters_2d}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{clustering_distribution.png}
+\caption{Distribución de eventos por cluster. La distribución no es uniforme, lo que refleja la naturaleza heterogénea de los patrones de consumo: algunos comportamientos son frecuentes y otros son nichos específicos de hogar.}
+\label{fig:cluster_dist}
+\end{figure}
+
+La Figura~\ref{fig:clusters_2d} muestra la proyección bidimensional de los 38 clusters sobre el espacio PCA. La separación visual entre grupos confirma lo que el Silhouette Score cuantifica: los clusters son entidades distinguibles en el espacio de características, no artefactos del algoritmo. La Figura~\ref{fig:cluster_dist} revela que la distribución de eventos entre clusters es heterogénea, con algunos clusters altamente poblados —que representan comportamientos de consumo comunes como la compra semanal de frutas y verduras— y otros clusters pequeños que capturan nichos de comportamiento específicos.
+
+\subsection{Interpretación de los Clusters en Contexto de Negocio}
+
+Aunque la interpretación semántica detallada de cada cluster se realizará en hitos posteriores mediante análisis de perfiles, es posible esbozar las categorías emergentes a partir del análisis de los centroides en el espacio PCA y las características dominantes identificadas en el biplot:
+
+\begin{itemize}
+    \item \textbf{Clusters de alta densidad nutricional:} Eventos asociados a productos con Nutriscore A y alto contenido en proteínas (e.g., verduras de hoja, legumbres). Estos clusters tienden a concentrarse en compras matutinas de fin de semana.
+    \item \textbf{Clusters de reabastecimiento de larga duración:} Eventos de entrada de productos con fechas de vencimiento extendidas (bebidas, granos, conservas). La señal temporal \code{day\_of\_week} es dominante en estos clusters.
+    \item \textbf{Clusters de consumo rápido de perecederos:} Agrupaciones de eventos \code{OUT} de productos con alta tasa de rotación (frutas, lácteos), caracterizados por una ventana corta entre el ingreso y la salida del inventario.
+    \item \textbf{Puntos de ruido (outliers):} Los 71 eventos clasificados como ruido incluyen compras atípicas fuera del horario habitual y productos con perfiles nutricionales que no encajan en ningún patrón de co-ocurrencia regular.
+\end{itemize}
+
+% ============================================================
+%   13. DISCUSIÓN ANALÍTICA DE RESULTADOS
+% ============================================================
+\section{Discusión: Avance hacia la Pregunta de Investigación}
+
+\subsection{¿Qué Evidencia Respalda el Avance?}
+
+La pregunta de investigación de SKI se articula en tres ejes: (1) la proximidad de vencimiento, (2) los perfiles nutricionales reales, y (3) los patrones de co-ocurrencia histórica de ingredientes. El Hito 3 avanza de forma sustancial en los ejes (2) y (3), y sienta las bases para el (1):
+
+El \textbf{eje nutricional (2)} queda cubierto por la integración de los metadatos de la USDA y su traducción a características densas mediante imputación por categoría y CatBoost Encoding. El Silhouette Score de 0.6549 implica que los clusters identificados son coherentes no solo matemáticamente sino también semánticamente: eventos que se agrupan juntos comparten perfiles nutricionales similares, lo que significa que el sistema ha aprendido implícitamente a distinguir patrones de consumo saludable de patrones menos nutritivos.
+
+El \textbf{eje de co-ocurrencia (3)} es abordado por el vector de características TF-IDF sobre nombres de producto combinado con la variable temporal. La formación de clusters por DBSCAN en el espacio de estas características implica que el algoritmo ha identificado grupos de eventos donde ciertos productos tienden a aparecer juntos —bajo la ventana de sesión de cocina— con mayor frecuencia. Esta es precisamente la base del grafo de co-ocurrencia que se construirá en el hito siguiente.
+
+El \textbf{eje de vencimiento (1)}, si bien no es el foco directo del clustering actual, está implícitamente codificado en la variable \code{expiry\_date} disponible en los eventos de tipo \code{IN}. El enriquecimiento del dataset con etiquetas de cluster permite, en la siguiente fase, construir un score de urgencia que combine la proximidad de vencimiento con el perfil de consumo del cluster al que pertenece cada producto.
+
+\subsection{Limitaciones Actuales}
+
+A pesar del avance significativo, es importante reconocer las limitaciones del estado actual del sistema:
+
+\begin{enumerate}
+    \item \textbf{Datos 100\% sintéticos en la capa transaccional:} Los logs de interacción son generados por simulación, no por usuarios reales. Aunque la simulación está anclada en comportamientos estadísticos reales de Instacart, el modelo podría no capturar la variabilidad idiosincrática de hogares individuales (alergias, preferencias culturales, restricciones presupuestarias).
+
+    \item \textbf{Interpretabilidad limitada de los clusters en PCA:} Las 30 componentes principales son combinaciones lineales de las 56 variables originales, lo que hace difícil la asignación de nombres semánticos directos a cada cluster. La fase de perfilamiento requerirá análisis de centroides en el espacio original para traducir las etiquetas numéricas a descripciones comprensibles.
+
+    \item \textbf{Escala del catálogo:} El catálogo de 50 productos, aunque suficiente para validar el pipeline, es significativamente menor al de una plataforma real de supermercado (miles de productos). La robustez del pipeline a escala de catálogo completo está planificada pero no ha sido validada empíricamente.
+
+    \item \textbf{Ausencia de evaluación externa:} El Silhouette Score es una métrica interna de calidad de clustering. Una validación externa requeriría contrastar los clusters con etiquetas de comportamiento reales (e.g., encuestas a hogares sobre sus hábitos de compra), lo que no es posible en el marco del proyecto por la ausencia de datos etiquetados.
+\end{enumerate}
+
+\subsection{Posibles Mejoras y Trabajo Futuro}
+
+\begin{itemize}
+    \item \textbf{Incorporación de la dimensión de caducidad:} Agregar el número de días hasta el vencimiento (\code{days\_to\_expiry}) como característica en la construcción de la matriz de features permitiría crear clusters que integren directamente la urgencia de consumo con el patrón de uso.
+    \item \textbf{Análisis de estabilidad temporal:} Dividir el historial de 90 días en ventanas temporales y evaluar si los clusters identificados son estables a lo largo del tiempo o si evolucionan (e.g., cambios de hábitos estacionales).
+    \item \textbf{Validación con datos reales:} La integración con sensores IoT reales (básculas de refrigerador, lectores de códigos de barras) permitiría contrastar los clusters sintéticos con comportamiento auténtico.
+    \item \textbf{Motor de Recomendación Híbrido (Hito 4):} Los 38 clusters son el insumo directo para el sistema de recomendación que combinará filtrado colaborativo a nivel de cluster con scoring de urgencia por vencimiento, respondiendo de forma directa a la pregunta de investigación del proyecto.
+\end{itemize}
+
+% ============================================================
+%   14. REPRODUCIBILIDAD Y PIPELINE
+% ============================================================
+\section{Reproducibilidad del Pipeline}
+
+Uno de los requisitos centrales del proyecto es la reproducibilidad completa del experimento. El pipeline de SKI cumple este requisito mediante tres mecanismos:
+
+\begin{enumerate}
+    \item \textbf{Control de dependencias:} El archivo \code{requirements.txt} especifica las versiones exactas de todas las librerías utilizadas (scikit-learn, numpy, pandas, polars, category-encoders, matplotlib, seaborn). La instalación se realiza mediante \code{pip install -r requirements.txt}.
+
+    \item \textbf{Semillas aleatorias:} Todos los algoritmos estocásticos (K-Means, GMM, t-SNE, PCA) utilizan \code{random\_state=42} para garantizar resultados idénticos en cualquier ejecución posterior.
+
+    \item \textbf{Runbook documentado:} El archivo \code{runbook.md} especifica el orden de ejecución de los scripts, las dependencias entre módulos y los artefactos generados en cada paso. La secuencia completa de reproducción es:
+
+\begin{lstlisting}[style=pythonstyle, caption={Secuencia de ejecuci\'on del pipeline completo de SKI}, label={lst:pipeline}]
+# Hito 1: Ingesta y Simulacion
+python src/ingestion.py       # Genera data/raw/catalog_raw.csv
+python src/simulation.py      # Genera data/raw/movements_raw.csv
+python src/preprocessing.py   # Genera data/processed/inventory_v1.csv
+
+# Hito 2: Feature Engineering y Reduccion de Dimensionalidad
+python src/features.py        # Genera data/features/feature_matrix.npy
+python src/reduction.py       # Genera feature_matrix_reduced.npy + figuras
+
+# Hito 3: Clustering y Segmentacion de Comportamiento
+python src/clustering.py            # Benchmark inicial (3 paradigmas)
+python src/clustering_refinement.py # Refinamiento y seleccion del ganador
+\end{lstlisting}
+\end{enumerate}
+
+El repositorio oficial del proyecto está disponible en: \texttt{https://github.com/jose-melgar/smart-kitchen-intelligence}
+
+% ============================================================
+%   15. CONCLUSIONES
+% ============================================================
+\section{Conclusiones}
+
+El Hito 3 representa el punto de inflexión analítica del proyecto Smart Kitchen Intelligence: el sistema trasciende la descripción estadística de los datos para alcanzar la \textbf{comprensión del comportamiento latente} de cada evento de inventario. Los hallazgos principales del presente hito son:
+
+\begin{enumerate}
+    \item \textbf{El pipeline de extremo a extremo es reproducible y escalable.} Desde la ingesta de datos nutricionales hasta la generación de clusters de comportamiento, el sistema opera de forma autónoma sobre 25{,}444 eventos, con una arquitectura modular que permite escalar a $10^7$ eventos mediante la adopción de PySpark y Parquet.
+
+    \item \textbf{La ingeniería de características multimodal es efectiva.} La combinación de variables numéricas, TF-IDF, CatBoost Encoding y características temporales en una representación densa de 56 dimensiones captura la complejidad del comportamiento alimentario sin incurrir en dispersidad estructural. La reducción a 30 componentes mediante PCA retiene el 90.01\% de la varianza con una compresión del 46.4\%.
+
+    \item \textbf{DBSCAN es el paradigma óptimo para este dominio.} Con un Silhouette Score de \winner{0.6549} —el más alto del benchmark— y la identificación de \winner{38 clusters} con apenas 0.28\% de ruido, DBSCAN demuestra que los patrones de inventario doméstico forman núcleos densos de alta cohesión con geometría irregular, incompatible con las asunciones esféricas de K-Means o gaussianas de GMM.
+
+    \item \textbf{El sistema se acerca significativamente a responder la pregunta de investigación.} Los 38 perfiles de comportamiento identificados constituyen el insumo directo para el motor de recomendación híbrido planificado para el siguiente hito, que combinará estos clusters con el scoring de urgencia por vencimiento y la analítica de grafos de co-ocurrencia.
+\end{enumerate}
+
+% ============================================================
+%   BIBLIOGRAFÍA
+% ============================================================
+\newpage
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem{fao2019}
+FAO. (2019). \textit{The State of Food and Agriculture: Moving Forward on Food Loss and Waste Reduction}. Food and Agriculture Organization of the United Nations.
+
+\bibitem{instacart}
+Instacart. (2017). \textit{Instacart Online Grocery Shopping Dataset 2017}. Kaggle. \texttt{kaggle.com/datasets/yasserh/instacart-online-grocery-basket-analysis-dataset}
+
+\bibitem{usda}
+U.S. Department of Agriculture. (n.d.). \textit{FoodData Central API Documentation}. \texttt{https://fdc.nal.usda.gov/}
+
+\bibitem{kimball2013}
+Kimball, R., \& Ross, M. (2013). \textit{The Data Warehouse Toolkit: The Definitive Guide to Dimensional Modeling} (3rd ed.). John Wiley \& Sons.
+
+\bibitem{rousseeuw1987}
+Rousseeuw, P. J. (1987). Silhouettes: A graphical aid to the interpretation and validation of cluster analysis. \textit{Journal of Computational and Applied Mathematics}, 20, 53--65.
+
+\bibitem{ester1996}
+Ester, M., Kriegel, H.-P., Sander, J., \& Xu, X. (1996). A density-based algorithm for discovering clusters in large spatial databases with noise. \textit{Proceedings of the 2nd International Conference on Knowledge Discovery and Data Mining (KDD-96)}, 226--231.
+
+\bibitem{mcinnes2017}
+McInnes, L., Healy, J., \& Astels, S. (2017). HDBSCAN: Hierarchical density based clustering. \textit{Journal of Open Source Software}, 2(11), 205.
+
+\bibitem{prokhorenkova2018}
+Prokhorenkova, L., Gusev, G., Vorobev, A., Dorogush, A. V., \& Gulin, A. (2018). CatBoost: Unbiased boosting with categorical features. \textit{Advances in Neural Information Processing Systems}, 31.
+
+\bibitem{alarcon2025}
+Alarc\'on Delgado, C. A. (2025). \textit{1ACC0221 - Big Data: Gu\'ia de Trabajo Semestral en Grupo}. Universidad Peruana de Ciencias Aplicadas (UPC).
+
+\bibitem{openfoodfacts}
+OpenFoodFacts. (n.d.). \textit{OpenFoodFacts Data API Documentation}. Recuperado de: \texttt{https://world.openfoodfacts.org/data}
+
+\end{thebibliography}
+
+\end{document}

@@ -28,6 +28,15 @@
       "n_eval_sessions": 968,
       "avg_truth_size": 2.1632231404958677
     },
+    "pagerank": {
+      "precision@k": 0.05413223140495868,
+      "recall@k": 0.12830988455988454,
+      "nprecision@k": 0.12914944903581266,
+      "map@k": 0.059456209825528,
+      "coverage@k": 0.26,
+      "n_eval_sessions": 968,
+      "avg_truth_size": 2.1632231404958677
+    },
     "content_tfidf": {
       "precision@k": 0.04504132231404959,
       "recall@k": 0.10368867243867243,

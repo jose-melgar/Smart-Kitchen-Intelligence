@@ -1,12 +1,14 @@
 """
-evaluation.py — Hito 4: protocolo de evaluación consolidado.
+evaluation.py — Hito 4 y Hito 5: protocolo de evaluación consolidado.
 
 Cumple el requisito de la rúbrica Week 10 de un "offline evaluation report"
-con un único hold-out y las mismas métricas para los cuatro modelos:
+y la Week 12 de "comparison section" de ranking de grafos.
+Sistemas evaluados:
 
     Sistema           | Tipo
     ------------------|-----------------------------
     popularity        | baseline trivial
+    pagerank          | graph centrality baseline (Hito 5)
     content_tfidf     | baseline content-based
     cf_als            | stronger system (matrix factorization)
     hybrid            | stronger system (mixed)
@@ -183,13 +185,28 @@ def main() -> None:
         if pid in pid_to_idx:
             expiry_vec[pid_to_idx[pid]] = 1.0 / (1.0 + d)
 
+    # 2.5 Integración de Métricas de Grafo (PageRank - Hito 5)
+    graph_metrics_path = REC / "graph_metrics.json"
+    pagerank_vec = np.zeros(len(products))
+    if graph_metrics_path.exists():
+        with open(graph_metrics_path, "r", encoding="utf-8") as f:
+            g_metrics = json.load(f)
+        node_metrics = g_metrics.get("node_metrics", {})
+        for pid_str, m_dict in node_metrics.items():
+            pid = int(pid_str) if pid_str.isdigit() else pid_str
+            if pid in pid_to_idx:
+                pagerank_vec[pid_to_idx[pid]] = m_dict.get("pagerank", 0.0)
+    else:
+        print(f"[warning] No se encontró {graph_metrics_path}. Ejecuta graph_analytics.py primero si deseas integrar métricas del Hito 5.")
+
     # 3. ALS factors (re-entrenar sobre train para no contaminar)
     X_als, Y_als = als_implicit(train, factors=16, reg=1.0, alpha=20.0,
                                 iterations=12, seed=42)
 
-    # 4. Evaluar 4 sistemas sobre el mismo candidate pool
+    # 4. Evaluar 5 sistemas sobre el mismo candidate pool
     systems = {
         "popularity":     scores_popularity(train),
+        "pagerank":       np.tile(pagerank_vec, (train.shape[0], 1)), # Ranking por red Hito 5
         "content_tfidf":  scores_content(train, item_sim_content),
         "cf_als":         X_als @ Y_als.T,
         "hybrid":         scores_hybrid(train, item_sim_content, X_als, Y_als,
@@ -209,8 +226,9 @@ def main() -> None:
         print(f"  {display_name:<26} prec@5={m['precision@k']:.4f}  "
               f"rec@5={m['recall@k']:.4f}  nprec@5={m['nprecision@k']:.4f}  "
               f"map@5={m['map@k']:.4f}  cov@5={m['coverage@k']:.4f}")
+              
     pd.DataFrame(rows).to_csv(REC / "evaluation_table.csv", index=False)
-    with open(REC / "evaluation_summary.json", "w") as f:
+    with open(REC / "evaluation_summary.json", "w", encoding="utf-8") as f:
         json.dump({
             "protocol": {
                 "unit": "restock_session",

@@ -1,0 +1,344 @@
+{
+    "network_overview": {
+        "num_nodes": 50,
+        "num_edges": 1225,
+        "connected_components": 1,
+        "largest_component_size": 50
+    },
+    "top_10_pagerank": [
+        [
+            "45007",
+            0.021621099311995528
+        ],
+        [
+            "16797",
+            0.02158305384789333
+        ],
+        [
+            "39877",
+            0.021495249781667263
+        ],
+        [
+            "4920",
+            0.021433027509602555
+        ],
+        [
+            "26604",
+            0.02143045603631548
+        ],
+        [
+            "27086",
+            0.021326803677244294
+        ],
+        [
+            "45066",
+            0.021018084219147325
+        ],
+        [
+            "5077",
+            0.020930947329238055
+        ],
+        [
+            "47626",
+            0.020785106086420747
+        ],
+        [
+            "39275",
+            0.020735361056378042
+        ]
+    ],
+    "top_10_weighted_degree": [
+        [
+            "45007",
+            1996.0
+        ],
+        [
+            "16797",
+            1992.0
+        ],
+        [
+            "39877",
+            1983.0
+        ],
+        [
+            "4920",
+            1976.0
+        ],
+        [
+            "26604",
+            1976.0
+        ],
+        [
+            "27086",
+            1965.0
+        ],
+        [
+            "45066",
+            1932.0
+        ],
+        [
+            "5077",
+            1922.0
+        ],
+        [
+            "47626",
+            1907.0
+        ],
+        [
+            "39275",
+            1901.0
+        ]
+    ],
+    "node_metrics": {
+        "4605": {
+            "degree": 49,
+            "weighted_degree": 1653.0,
+            "pagerank": 0.01841135524427385
+        },
+        "4920": {
+            "degree": 49,
+            "weighted_degree": 1976.0,
+            "pagerank": 0.021433027509602555
+        },
+        "5077": {
+            "degree": 49,
+            "weighted_degree": 1922.0,
+            "pagerank": 0.020930947329238055
+        },
+        "5876": {
+            "degree": 49,
+            "weighted_degree": 1871.0,
+            "pagerank": 0.02045047181838873
+        },
+        "8277": {
+            "degree": 49,
+            "weighted_degree": 1773.0,
+            "pagerank": 0.019535108415726067
+        },
+        "8518": {
+            "degree": 49,
+            "weighted_degree": 1834.0,
+            "pagerank": 0.020105508469565915
+        },
+        "9076": {
+            "degree": 49,
+            "weighted_degree": 1851.0,
+            "pagerank": 0.020261946790787123
+        },
+        "10749": {
+            "degree": 49,
+            "weighted_degree": 1818.0,
+            "pagerank": 0.01995819469949966
+        },
+        "13176": {
+            "degree": 49,
+            "weighted_degree": 1873.0,
+            "pagerank": 0.020467040891480163
+        },
+        "16797": {
+            "degree": 49,
+            "weighted_degree": 1992.0,
+            "pagerank": 0.02158305384789333
+        },
+        "17794": {
+            "degree": 49,
+            "weighted_degree": 1689.0,
+            "pagerank": 0.01875045826332564
+        },
+        "19057": {
+            "degree": 49,
+            "weighted_degree": 1895.0,
+            "pagerank": 0.020677720310059603
+        },
+        "19660": {
+            "degree": 49,
+            "weighted_degree": 1662.0,
+            "pagerank": 0.01849805321688117
+        },
+        "21137": {
+            "degree": 49,
+            "weighted_degree": 1809.0,
+            "pagerank": 0.019871372140234843
+        },
+        "21616": {
+            "degree": 49,
+            "weighted_degree": 1861.0,
+            "pagerank": 0.020361751575824066
+        },
+        "21903": {
+            "degree": 49,
+            "weighted_degree": 1751.0,
+            "pagerank": 0.019325552628979316
+        },
+        "22035": {
+            "degree": 49,
+            "weighted_degree": 1735.0,
+            "pagerank": 0.019180486097871974
+        },
+        "22935": {
+            "degree": 49,
+            "weighted_degree": 1865.0,
+            "pagerank": 0.02040128049013791
+        },
+        "24852": {
+            "degree": 49,
+            "weighted_degree": 1848.0,
+            "pagerank": 0.020237876750682508
+        },
+        "24964": {
+            "degree": 49,
+            "weighted_degree": 1640.0,
+            "pagerank": 0.01828840740611536
+        },
+        "26209": {
+            "degree": 49,
+            "weighted_degree": 1799.0,
+            "pagerank": 0.019777896455083425
+        },
+        "26604": {
+            "degree": 49,
+            "weighted_degree": 1976.0,
+            "pagerank": 0.02143045603631548
+        },
+        "27086": {
+            "degree": 49,
+            "weighted_degree": 1965.0,
+            "pagerank": 0.021326803677244294
+        },
+        "27104": {
+            "degree": 49,
+            "weighted_degree": 1710.0,
+            "pagerank": 0.01894536936621499
+        },
+        "27845": {
+            "degree": 49,
+            "weighted_degree": 1747.0,
+            "pagerank": 0.01929079715958077
+        },
+        "27966": {
+            "degree": 49,
+            "weighted_degree": 1870.0,
+            "pagerank": 0.020442362474840832
+        },
+        "28204": {
+            "degree": 49,
+            "weighted_degree": 1867.0,
+            "pagerank": 0.020414807628755444
+        },
+        "28985": {
+            "degree": 49,
+            "weighted_degree": 1857.0,
+            "pagerank": 0.020313638552415015
+        },
+        "30391": {
+            "degree": 49,
+            "weighted_degree": 1613.0,
+            "pagerank": 0.018038483712462316
+        },
+        "30489": {
+            "degree": 49,
+            "weighted_degree": 1862.0,
+            "pagerank": 0.020368227399656193
+        },
+        "31717": {
+            "degree": 49,
+            "weighted_degree": 1744.0,
+            "pagerank": 0.019267311825007214
+        },
+        "34126": {
+            "degree": 49,
+            "weighted_degree": 1777.0,
+            "pagerank": 0.01957018663279546
+        },
+        "35951": {
+            "degree": 49,
+            "weighted_degree": 1874.0,
+            "pagerank": 0.020476740894830453
+        },
+        "37646": {
+            "degree": 49,
+            "weighted_degree": 1874.0,
+            "pagerank": 0.020480277550840524
+        },
+        "39275": {
+            "degree": 49,
+            "weighted_degree": 1901.0,
+            "pagerank": 0.020735361056378042
+        },
+        "39877": {
+            "degree": 49,
+            "weighted_degree": 1983.0,
+            "pagerank": 0.021495249781667263
+        },
+        "40706": {
+            "degree": 49,
+            "weighted_degree": 1881.0,
+            "pagerank": 0.020539539874254033
+        },
+        "41950": {
+            "degree": 49,
+            "weighted_degree": 1883.0,
+            "pagerank": 0.02055816167466154
+        },
+        "42265": {
+            "degree": 49,
+            "weighted_degree": 1761.0,
+            "pagerank": 0.019423220653700807
+        },
+        "43352": {
+            "degree": 49,
+            "weighted_degree": 1825.0,
+            "pagerank": 0.020022381365101743
+        },
+        "44359": {
+            "degree": 49,
+            "weighted_degree": 1773.0,
+            "pagerank": 0.019540274984572822
+        },
+        "44632": {
+            "degree": 49,
+            "weighted_degree": 1783.0,
+            "pagerank": 0.019623991838826155
+        },
+        "45007": {
+            "degree": 49,
+            "weighted_degree": 1996.0,
+            "pagerank": 0.021621099311995528
+        },
+        "45066": {
+            "degree": 49,
+            "weighted_degree": 1932.0,
+            "pagerank": 0.021018084219147325
+        },
+        "46979": {
+            "degree": 49,
+            "weighted_degree": 1763.0,
+            "pagerank": 0.019440872687611913
+        },
+        "47209": {
+            "degree": 49,
+            "weighted_degree": 1720.0,
+            "pagerank": 0.019037673627250687
+        },
+        "47626": {
+            "degree": 49,
+            "weighted_degree": 1907.0,
+            "pagerank": 0.020785106086420747
+        },
+        "47766": {
+            "degree": 49,
+            "weighted_degree": 1637.0,
+            "pagerank": 0.018261339017618405
+        },
+        "49235": {
+            "degree": 49,
+            "weighted_degree": 1870.0,
+            "pagerank": 0.02043828013476456
+        },
+        "49683": {
+            "degree": 49,
+            "weighted_degree": 1672.0,
+            "pagerank": 0.0185863904234181
+        }
+    }
+}

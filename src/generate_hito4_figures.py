@@ -148,4 +148,15 @@ def fig_tfidf_idf():
 
 def main() -> None:
     fig_sparsity()
-    fig_n
+    fig_normalizations()
+    fig_lambda_sweep()
+    fig_cold_start()
+    fig_hybrid_ablation()
+    fig_tfidf_idf()
+    print(f"[figures] Figuras guardadas en {FIG_DIR}")
+    for p in sorted(FIG_DIR.glob("*.png")):
+        print(f"  {p.name}")
+
+
+if __name__ == "__main__":
+    main()

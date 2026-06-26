@@ -1,0 +1,486 @@
+% ============================================================
+%   Smart Kitchen Intelligence — Informe Técnico Hito 5
+%   Curso: 1ACC0221-2610 Big Data | Sección 18517
+%   Universidad Peruana de Ciencias Aplicadas (UPC)
+%   Autores: José Melgar Puertas · Gabriel Reyna Alvarado
+%   Semana 12 — Analítica de Grafos y Centralidad PageRank
+%   Compilar con: xelatex informe_hito5.tex (2 pasadas)
+% ============================================================
+
+\documentclass[12pt,a4paper]{article}
+
+% Codificación y tipografía
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{spanish}
+\setotherlanguage{english}
+\defaultfontfeatures{Ligatures=TeX}
+
+% Geometría
+\usepackage[top=2.5cm,bottom=2.5cm,left=3cm,right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% Matemáticas, tablas, figuras
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs,tabularx,longtable,array,multirow}
+\usepackage{graphicx,float,caption,subcaption}
+\usepackage{listings,xcolor}
+\usepackage{colortbl}
+
+\lstdefinestyle{pystyle}{
+    backgroundcolor=\color{gray!8},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue!70}\bfseries,
+    commentstyle=\color{green!50!black}\itshape,
+    stringstyle=\color{red!60!black},
+    breaklines=true,
+    frame=single, rulecolor=\color{gray!40},
+    numbers=left, numberstyle=\tiny\color{gray}, tabsize=4,
+    language=Python
+}
+
+\usepackage[hidelinks,colorlinks=true,
+            linkcolor=black,citecolor=blue!60!black,
+            urlcolor=blue!70!black]{hyperref}
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Smart Kitchen Intelligence}}
+\fancyhead[R]{\small\textit{Hito 5 — Big Data}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\definecolor{upcred}{RGB}{190,30,45}
+\definecolor{metricblue}{RGB}{0,70,140}
+\definecolor{successgreen}{RGB}{0,120,60}
+
+\newcommand{\metric}[1]{\textcolor{metricblue}{\textbf{#1}}}
+\newcommand{\winner}[1]{\textcolor{successgreen}{\textbf{#1}}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\upc}{\textsc{upc}}
+
+\graphicspath{{./reports/figures/}{./reports/figures/hito5/}}
+
+\begin{document}
+
+% ============================================================
+%   PORTADA
+% ============================================================
+\begin{titlepage}
+\centering
+\vspace*{0.5cm}
+{\LARGE\bfseries UNIVERSIDAD PERUANA DE CIENCIAS APLICADAS\par}
+\vspace{0.3cm}
+{\Large\bfseries FACULTAD DE INGENIERÍA\par}
+\vspace{0.2cm}
+{\large\bfseries COMPUTER SCIENCE PROFESSIONAL PROGRAM\par}
+
+\vspace{1.2cm}
+{\color{upcred}\rule{6cm}{3pt}}\par
+\vspace{0.8cm}
+
+{\large Curso:\par}
+{\Large\bfseries 1ACC0221-2610 — Big Data\par}
+{\large Sección: 18517\par}
+
+\vspace{1.5cm}
+\begin{minipage}{0.85\textwidth}
+\centering
+{\Large\bfseries Smart Kitchen Intelligence: \\[0.3em]
+Analítica de Grafos de Co-ocurrencia\\[0.3em]
+y Centralidad PageRank\par}
+\end{minipage}
+
+\vspace{1.5cm}
+{\large\bfseries Informe Técnico — Hito 5 (Semana 12)\par}
+{\large\itshape Modelado de redes de co-compra, métricas\\
+estructurales y evaluación comparativa de centralidad\par}
+
+\vspace{1.8cm}
+{\large\bfseries Autores\par}
+\vspace{0.4cm}
+\begin{tabular}{ll}
+Melgar Puertas, José Guillermo & u202111660 \\[4pt]
+Reyna Alvarado, Gabriel Alonso & u202126097 \\
+\end{tabular}
+
+\vspace{1.2cm}
+{\large\bfseries Profesor\par}
+\vspace{0.3cm}
+{\large Alarcon Delgado, Carlos Adrian\par}
+
+\vfill
+{\large Lima, junio de 2026\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ============================================================
+%   1. INTRODUCCIÓN
+% ============================================================
+\section{Introducción}
+
+\subsection{Objetivo del proyecto}
+
+\textbf{Smart Kitchen Intelligence (SKI)} es un prototipo de sistema de Big Data diseñado para reducir el desperdicio de alimentos y optimizar la gestión de despensas en el hogar. El sistema ingiere metadatos de productos desde APIs públicas (OpenFoodFacts, USDA FoodData Central) y simula un historial masivo de movimientos de inventario (\code{IN}/\code{OUT}) parametrizados con distribuciones estocásticas reales del dataset Instacart.
+
+La pregunta central que busca responder el proyecto es: \textit{¿Cómo optimizar el consumo de alimentos e incentivar el restock doméstico basándose simultáneamente en la afinidad histórica del hogar, patrones latentes colectivos y la urgencia por proximidad de vencimiento de unidades perecederas?}
+
+\subsection{Recorrido de los hitos previos}
+
+A lo largo de las entregas anteriores, el pipeline de SKI se ha construido de forma incremental:
+
+\begin{itemize}
+    \item \textbf{Hito 1 (Semana 3) — Pipeline de datos:} Se implementó la cadena completa de ingesta, simulación estocástica y ETL. El resultado es el dataset consolidado \code{inventory\_v1.csv} con \metric{25{,}444 eventos} de inventario distribuidos en 10 hogares y 50 productos, estructurado bajo un esquema de estrella con clave relacional \code{stock\_id}.
+
+    \item \textbf{Hito 2 (Semana 5) — Feature engineering y reducción dimensional:} Se construyó una matriz densa de características (\metric{72{,}000 × 61}) mediante CatBoost Encoding y procesamiento multihilo con Polars. Se aplicó PCA para reducir a 30 componentes principales reteniendo el 90\% de la varianza, y t-SNE para verificar visualmente la existencia de estructuras latentes.
+
+    \item \textbf{Hito 3 (Semana 7) — Clustering y segmentación:} Se realizó un benchmark competitivo entre K-Means, GMM y DBSCAN sobre el espacio reducido de PCA. El modelo ganador fue DBSCAN refinado ($\varepsilon = 2.7$, $\text{min\_samples} = 15$) con un Silhouette Score de \metric{0.6549}, identificando 38 perfiles de comportamiento de consumo con un ruido del 0.28\%.
+
+    \item \textbf{Hito 4 (Semana 11) — Recomendador híbrido multicapa:} Se construyó un motor de recomendación de tres capas: (i) contenido con TF-IDF sobre pseudo-documentos del catálogo, (ii) filtrado colaborativo implícito mediante ALS con barrido de $\lambda$, y (iii) un ensamble híbrido lineal con señal anti-desperdicio basada en proximidad de vencimiento. La evaluación bajo el paradigma de Masked Basket Completion Task demostró un \metric{Catalog Coverage del 100\%} y un MAP@5 de \metric{0.0574}.
+\end{itemize}
+
+\subsection{Objetivo del Hito 5}
+
+El presente informe documenta el \textbf{Hito 5}, correspondiente a la Semana 12 del curso. El objetivo es incorporar una \textbf{capa de analítica de grafos} al sistema, modelando las relaciones de co-ocurrencia entre productos como una red compleja no dirigida y aplicando métricas de centralidad (PageRank) para identificar los productos estructuralmente más influyentes en el ecosistema de la cocina.
+
+Concretamente, este hito responde a dos preguntas:
+
+\begin{enumerate}
+    \item \textbf{¿Qué estructura topológica emerge de las sesiones de reabastecimiento?} — ¿Los productos forman comunidades diferenciadas, o están altamente interconectados?
+    \item \textbf{¿La centralidad de red es un predictor útil de relevancia?} — ¿PageRank supera al baseline trivial de popularidad como sistema de ranking no personalizado?
+\end{enumerate}
+
+% ============================================================
+%   2. DATOS Y ARTEFACTOS REUTILIZADOS
+% ============================================================
+\section{Datos y Artefactos Reutilizados}
+
+El Hito 5 se construye directamente sobre dos artefactos producidos en el Hito 4:
+
+\begin{itemize}
+    \item \textbf{Matriz binaria de sesiones de restock} (\code{R\_restock\_bin.npz}): Matriz dispersa CSR de \metric{1{,}177 sesiones × 50 productos}, donde cada entrada indica si el producto fue parte de la sesión de reabastecimiento. La unidad ``sesión'' se define como ventana operacional de 60 minutos por household.
+
+    \item \textbf{Catálogo de productos} (\code{product\_catalog.csv}): Los 50 productos del sistema con sus atributos (nombre, categoría, clasificación, nutriscore, macronutrientes).
+\end{itemize}
+
+No se generan datos nuevos desde las APIs ni desde el simulador. El grafo se deriva enteramente de la matriz $R$ existente mediante una operación algebraica cerrada.
+
+% ============================================================
+%   3. CONSTRUCCIÓN DEL GRAFO
+% ============================================================
+\section{Construcción del Grafo de Co-ocurrencia}
+
+\subsection{Fundamento teórico}
+
+La idea central es modelar las relaciones implícitas entre productos: dos productos están ``relacionados'' si tienden a aparecer en las mismas sesiones de reabastecimiento. Esta noción de co-ocurrencia se captura naturalmente mediante un grafo no dirigido ponderado donde cada nodo es un producto y el peso de cada arista refleja la frecuencia con la que dos productos co-aparecen.
+
+\subsection{Método: multiplicación matricial $R^T \cdot R$}
+
+Dada la matriz binaria de interacciones $R \in \{0,1\}^{m \times n}$ (donde $m = 1{,}177$ sesiones y $n = 50$ productos), la \textbf{matriz de co-ocurrencia} se obtiene mediante:
+
+\begin{equation}
+    A = R^T \cdot R \in \mathbb{R}^{n \times n}
+\end{equation}
+
+donde $A_{ij}$ cuenta el número de sesiones en las que los productos $i$ y $j$ aparecen simultáneamente. La diagonal $A_{ii}$ representa la frecuencia absoluta del producto $i$ (se descarta para las aristas del grafo). Esta operación es estándar en analítica de redes bipartitas y equivale a la proyección del grafo bipartito sesión-producto sobre la dimensión de productos.
+
+\subsection{Implementación}
+
+El script \code{src/graph\_construction.py} ejecuta esta operación en tres pasos:
+
+\begin{lstlisting}[style=pystyle]
+# 1. Cargar la matriz dispersa R (1177 x 50)
+R = sp.load_npz("data/recommender/R_restock_bin.npz")
+
+# 2. Multiplicacion matricial: produce A (50 x 50)
+adjacency = (R.T @ R).toarray()
+
+# 3. Construir grafo no dirigido ponderado con NetworkX
+for i in range(n_products):
+    for j in range(i + 1, n_products):
+        weight = adjacency[i, j]
+        if weight > 0:
+            G.add_edge(product_ids[i], product_ids[j], weight=weight)
+\end{lstlisting}
+
+El grafo resultante se exporta en formato GEXF (\code{data/recommender/kitchen\_graph.gexf}), un estándar XML interoperable con herramientas de visualización como Gephi.
+
+\subsection{Resultado de la construcción}
+
+\begin{table}[H]
+\centering
+\caption{Propiedades topológicas del grafo de co-ocurrencia.}
+\label{tab:graph_overview}
+\begin{tabular}{lr}
+\toprule
+\textbf{Propiedad} & \textbf{Valor} \\
+\midrule
+Nodos (productos) & \metric{50} \\
+Aristas (relaciones de co-compra) & \metric{1{,}225} \\
+Componentes conexas & \metric{1} \\
+Tamaño de la componente mayor & 50 (100\%) \\
+Densidad del grafo & $\frac{1{,}225}{\binom{50}{2}} = 1.0$ (completo) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El grafo es \textbf{completamente conexo}: cada par de productos ha co-aparecido al menos una vez en alguna sesión durante los 90 días de simulación. Esto es esperado dado que 10 hogares con 50 productos compartidos generan suficiente diversidad en 1,177 sesiones. Sin embargo, la diferenciación relevante no está en la topología binaria (que es trivialmente completa), sino en los \textbf{pesos de las aristas}, que varían significativamente según la afinidad real de co-compra.
+
+% ============================================================
+%   4. ANALÍTICA DE GRAFOS
+% ============================================================
+\section{Analítica de Grafos y Centralidad}
+
+El script \code{src/graph\_analytics.py} extrae dos familias de métricas del grafo construido: métricas de grado y métricas de centralidad algorítmica.
+
+\subsection{Grado ponderado}
+
+Dado que el grafo es completo, todos los nodos tienen grado simple $= 49$ (conectados a los otros 49 productos). La métrica discriminante es el \textbf{grado ponderado}, definido como la suma de los pesos de todas las aristas incidentes a un nodo:
+
+\begin{equation}
+    d_w(v) = \sum_{u \in \mathcal{N}(v)} w(u, v)
+\end{equation}
+
+donde $\mathcal{N}(v)$ es el conjunto de vecinos de $v$ y $w(u,v)$ el peso de la arista. Un grado ponderado alto indica que el producto co-ocurre frecuentemente con muchos otros productos.
+
+\begin{table}[H]
+\centering
+\caption{Estadísticas del grado ponderado.}
+\label{tab:degree_stats}
+\begin{tabular}{lr}
+\toprule
+\textbf{Estadística} & \textbf{Valor} \\
+\midrule
+Mínimo & 1{,}613 \\
+Máximo & 1{,}996 \\
+Media & 1{,}822.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La Figura~\ref{fig:degree} muestra la distribución ordenada de grados ponderados. Los productos en el extremo superior son los que actúan como ``productos puente'' entre distintos patrones de consumo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{degree_distribution.png}
+    \caption{Distribución de grado ponderado en la red de co-ocurrencia. La línea roja indica la media (1{,}823). Los productos a la derecha son los de mayor frecuencia de co-compra.}
+    \label{fig:degree}
+\end{figure}
+
+\subsection{Centralidad PageRank}
+
+El algoritmo PageRank~\cite{brin1998}, originalmente diseñado para rankear páginas web, se aplica aquí para determinar la \textbf{importancia relativa} de cada producto en la red de co-compra. A diferencia del grado ponderado, PageRank tiene en cuenta la importancia de los vecinos de un nodo: un producto es ``más central'' si co-ocurre frecuentemente con otros productos que también son centrales.
+
+Formalmente, para un grafo ponderado no dirigido con factor de amortiguación $\alpha = 0.85$:
+
+\begin{equation}
+    \text{PR}(v) = \frac{1 - \alpha}{N} + \alpha \sum_{u \in \mathcal{N}(v)} \frac{w(u,v)}{d_w(u)} \cdot \text{PR}(u)
+\end{equation}
+
+donde $N = 50$ es el número de nodos. El algoritmo converge iterativamente a una distribución estacionaria que asigna un score de centralidad a cada producto.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{pagerank_bar.png}
+    \caption{Top-15 productos por centralidad PageRank. Los productos con mayor score son aquellos que co-ocurren frecuentemente con otros productos también centrales.}
+    \label{fig:pagerank}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Top-10 productos por centralidad PageRank.}
+\label{tab:pagerank_top10}
+\begin{tabular}{clc}
+\toprule
+\textbf{Rank} & \textbf{Producto} & \textbf{PageRank} \\
+\midrule
+1 & Yellow Onions & 0.0216 \\
+2 & Strawberries & 0.0216 \\
+3 & Organic Avocado & 0.0215 \\
+4 & Seedless Red Grapes & 0.0214 \\
+5 & Organic Raspberries & 0.0214 \\
+6 & Organic Strawberries & 0.0213 \\
+7 & Organic Baby Spinach & 0.0210 \\
+8 & 100\% Whole Wheat Bread & 0.0209 \\
+9 & Organic Hass Avocado & 0.0208 \\
+10 & Sparkling Water & 0.0207 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La distribución de PageRank es relativamente uniforme ($\sigma = 0.00094$), reflejando la alta conectividad del grafo. Sin embargo, los productos en el top presentan un perfil semántico consistente: frutas frescas de alta rotación (fresas, uvas, aguacate), verduras básicas (cebolla, espinaca) y productos complementarios (pan integral, agua con gas). Estos son los productos ``universales'' que aparecen en la mayoría de canastas independientemente del hogar.
+
+\subsection{Visualización de la red}
+
+La Figura~\ref{fig:network} presenta el grafo completo de co-ocurrencia, donde el tamaño de cada nodo es proporcional a su PageRank y el color refleja su grado ponderado.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{graph_network.png}
+    \caption{Red de co-ocurrencia de productos. Tamaño de nodo $\propto$ PageRank. Color: grado ponderado (amarillo = bajo, rojo = alto). Layout: Spring con semilla fija 42.}
+    \label{fig:network}
+\end{figure}
+
+% ============================================================
+%   5. EVALUACIÓN COMPARATIVA
+% ============================================================
+\section{Evaluación Comparativa: PageRank como Sistema de Ranking}
+
+Para cuantificar la utilidad predictiva de la centralidad de red, se incorporó PageRank como un \textbf{quinto sistema} en el protocolo de evaluación consolidado del Hito 4.
+
+\subsection{Protocolo de evaluación}
+
+El protocolo es idéntico al del Hito 4 para garantizar comparabilidad directa:
+
+\begin{itemize}
+    \item \textbf{Tarea:} Masked Basket Completion Task (Cloze Task Style).
+    \item \textbf{Hold-out:} 20\% de las interacciones no-cero enmascaradas aleatoriamente (semilla 42).
+    \item \textbf{Sesiones evaluadas:} \metric{968} de las 1{,}177 sesiones totales.
+    \item \textbf{Interacciones ocultas:} \metric{2{,}094}.
+    \item \textbf{Candidate pool:} Catálogo completo de 50 productos menos las interacciones vistas en train de cada sesión.
+    \item \textbf{Métricas:} Precision@5, Recall@5, MAP@5, Coverage@5.
+\end{itemize}
+
+El sistema ``PageRank'' asigna a cada producto el mismo score (su PageRank estático) para todas las sesiones, sin personalización. Es un ranking global fijo que representa la ``importancia estructural'' de cada producto en la red.
+
+\subsection{Resultados}
+
+\begin{table}[H]
+\centering
+\caption{Comparativa de los 5 sistemas de recomendación bajo el protocolo de Masked Basket Completion Task.}
+\label{tab:eval}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Sistema} & \textbf{Precision@5} & \textbf{Recall@5} & \textbf{MAP@5} & \textbf{Coverage@5} \\
+\midrule
+Popularity  & 0.0508 & 0.1167 & 0.0539 & 22.0\% \\
+\rowcolor{yellow!15}
+\textbf{PageRank} & \textbf{0.0541} & \textbf{0.1283} & \textbf{0.0595} & 26.0\% \\
+Content (TF-IDF) & 0.0450 & 0.1037 & 0.0511 & 84.0\% \\
+CF (ALS) & 0.0467 & 0.1125 & 0.0549 & 100.0\% \\
+Hybrid & 0.0494 & 0.1177 & 0.0574 & \winner{100.0\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{system_comparison.png}
+    \caption{Comparativa visual de los 5 sistemas en tres métricas clave.}
+    \label{fig:comparison}
+\end{figure}
+
+\subsection{Análisis de los resultados}
+
+Los resultados revelan tres hallazgos principales:
+
+\paragraph{1. PageRank supera a Popularity.} PageRank obtiene un \metric{Precision@5 = 0.0541} frente al 0.0508 de Popularity (+6.5\%), y un \metric{MAP@5 = 0.0595} frente a 0.0539 (+10.4\%). Esto demuestra que la centralidad estructural de la red captura señales de relevancia más ricas que la simple frecuencia de aparición individual. Intuitivamente, PageRank no solo considera cuántas veces aparece un producto, sino \textit{con qué otros productos} aparece y cuán importantes son esos vecinos.
+
+\paragraph{2. Coverage limitada.} Como ranking estático no personalizado, PageRank solo recomienda los mismos $\sim$13 productos a todas las sesiones (Coverage = 26\%). Esto lo descalifica como sistema de producción autónomo, al igual que Popularity (22\%), porque no puede descubrir productos del \textit{long tail} del catálogo.
+
+\paragraph{3. El Hybrid sigue siendo óptimo para producción.} El sistema híbrido mantiene su posición como el mejor compromiso entre capacidad predictiva (MAP@5 = 0.0574, segundo lugar) y diversidad (Coverage = 100\%). La integración de las tres señales (contenido, colaborativo y urgencia) garantiza que cada producto del catálogo pueda ser recomendado al menos una vez.
+
+\subsection{Implicación para el sistema}
+
+El resultado más valioso de este hito es la \textbf{validación empírica} de que la estructura topológica de la red de co-compra contiene información predictiva no trivial. PageRank no es solo un ``proxy elegante'' de popularidad: supera a Popularity en todas las métricas de ranking, lo que justifica su futura integración como señal adicional en el recomendador híbrido.
+
+% ============================================================
+%   6. REPRODUCIBILIDAD
+% ============================================================
+\section{Reproducibilidad}
+
+El pipeline del Hito 5 se ejecuta de forma secuencial en tres comandos:
+
+\begin{lstlisting}[style=pystyle, language=bash]
+# 1. Construir el grafo de co-ocurrencia
+python src/graph_construction.py
+
+# 2. Extraer metricas de red y centralidad PageRank
+python src/graph_analytics.py
+
+# 3. Re-ejecutar evaluacion consolidada (5 sistemas)
+python src/evaluation.py
+\end{lstlisting}
+
+Los artefactos generados son:
+
+\begin{itemize}
+    \item \code{data/recommender/kitchen\_graph.gexf} — Grafo exportado en formato GEXF.
+    \item \code{data/recommender/graph\_metrics.json} — Métricas estructurales y diccionario de PageRank.
+    \item \code{data/recommender/evaluation\_table.csv} — Tabla comparativa actualizada con 5 sistemas.
+    \item \code{reports/figures/hito5/*.png} — 4 figuras generadas por \code{src/generate\_hito5\_figures.py}.
+\end{itemize}
+
+Todos los scripts son deterministas (semilla 42 donde aplique) y están diseñados para ejecutarse sin estado previo más allá de los artefactos del Hito 4.
+
+% ============================================================
+%   7. LIMITACIONES Y TRABAJO FUTURO
+% ============================================================
+\section{Limitaciones y Trabajo Futuro}
+
+\subsection{Limitaciones del Hito 5}
+
+\begin{itemize}
+    \item \textbf{Grafo completo:} La conectividad total del grafo ($\text{densidad} = 1.0$) limita el poder discriminante de las métricas topológicas binarias (grado, componentes). La diferenciación depende exclusivamente de los pesos de las aristas. En un escenario con datos reales y catálogos más grandes, el grafo sería naturalmente más disperso y las métricas estructurales aportarían más información.
+
+    \item \textbf{PageRank uniforme:} La desviación estándar del PageRank ($\sigma = 0.00094$) es baja, indicando que la distribución es casi uniforme. Esto limita la resolución del ranking. Con datos reales, la distribución tendría una cola más pesada (ley de potencias), lo que amplificaría las diferencias entre productos.
+
+    \item \textbf{Ranking estático:} PageRank produce un ranking global fijo, no personalizado por sesión ni por hogar. Su utilidad como sistema autónomo está limitada por la baja coverage (26\%).
+\end{itemize}
+
+\subsection{Trabajo futuro (Hito 6)}
+
+El paso natural es integrar el score de PageRank como un \textbf{cuarto componente} del recomendador híbrido:
+
+\begin{equation}
+    S_{\text{hybrid+}} = w_C \cdot \hat{S}_C + w_F \cdot \hat{S}_F + w_E \cdot \hat{S}_E + w_G \cdot \hat{S}_G
+\end{equation}
+
+donde $\hat{S}_G$ es el vector de PageRank normalizado por fila (Min-Max) y $w_G$ un nuevo peso a calibrar por ablación. La hipótesis es que PageRank aportará una señal de ``importancia de red'' complementaria a la señal colaborativa (que captura preferencias individuales) y a la señal de contenido (que captura similitud por atributos).
+
+Adicionalmente, se plantea como mejora futura la detección de \textbf{comunidades} en el grafo (Louvain, Leiden) para agrupar productos en ``familias de co-compra'' que podrían actuar como features adicionales para el recomendador.
+
+% ============================================================
+%   8. CONCLUSIONES
+% ============================================================
+\section{Conclusiones}
+
+El Hito 5 extiende el pipeline de Smart Kitchen Intelligence con una capa de analítica de grafos que modela las relaciones de co-ocurrencia transaccional entre productos. Las contribuciones principales son:
+
+\begin{enumerate}
+    \item Se construyó una red no dirigida ponderada de 50 nodos y 1,225 aristas a partir de la multiplicación matricial $R^T \cdot R$ sobre la matriz de sesiones de restock.
+
+    \item Se extrajeron métricas de grado ponderado y centralidad PageRank, identificando los productos estructuralmente más influyentes (Yellow Onions, Strawberries, Organic Avocado).
+
+    \item Se validó empíricamente que PageRank supera al baseline de popularidad en Precision@5 (+6.5\%) y MAP@5 (+10.4\%), demostrando que la centralidad de red captura señales predictivas que la frecuencia simple no alcanza.
+
+    \item Se mantiene el sistema híbrido como sistema óptimo de producción, con 100\% de Catalog Coverage frente al 26\% de PageRank y el 22\% de Popularity.
+\end{enumerate}
+
+El sistema completo —desde la ingesta de datos hasta la evaluación comparativa con 5 sistemas de ranking— es reproducible mediante scripts secuenciales deterministas documentados en el \code{runbook.md} y el \code{README.md} del repositorio.
+
+% ============================================================
+%   REFERENCIAS
+% ============================================================
+\begin{thebibliography}{9}
+
+\bibitem{brin1998}
+Brin, S. \& Page, L. (1998). The anatomy of a large-scale hypertextual web search engine. \textit{Computer Networks and ISDN Systems}, 30(1-7), 107--117.
+
+\bibitem{hu2008}
+Hu, Y., Koren, Y. \& Volinsky, C. (2008). Collaborative Filtering for Implicit Feedback Datasets. \textit{IEEE ICDM}, 263--272.
+
+\bibitem{networkx}
+Hagberg, A. A., Schult, D. A. \& Swart, P. J. (2008). Exploring network structure, dynamics, and function using NetworkX. \textit{Proceedings of the 7th Python in Science Conference (SciPy)}, 11--15.
+
+\bibitem{fao2019}
+FAO (2019). \textit{The State of Food and Agriculture: Moving forward on food loss and waste reduction}. United Nations Food and Agriculture Organization.
+
+\end{thebibliography}
+
+\end{document}

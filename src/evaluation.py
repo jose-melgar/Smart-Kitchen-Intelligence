@@ -11,7 +11,8 @@ Sistemas evaluados:
     pagerank          | graph centrality baseline (Hito 5)
     content_tfidf     | baseline content-based
     cf_als            | stronger system (matrix factorization)
-    hybrid            | stronger system (mixed)
+    hybrid            | stronger system (mixed, v1: contenido+CF+expiry)
+    hybrid_v2_graph   | stronger system (mixed, v2: + PageRank, Semana 13)
 
 Protocolo:
   - Unidad de evaluación: sesión de restock (`R_restock_bin`, 1177 sesiones).
@@ -127,6 +128,13 @@ def scores_cf_als(train: sp.csr_matrix, lam: float = 1.0,
     return X @ Y.T
 
 
+def _row_normalize(M: np.ndarray) -> np.ndarray:
+    m_min = M.min(axis=1, keepdims=True)
+    m_rng = M.max(axis=1, keepdims=True) - m_min
+    m_rng[m_rng == 0] = 1
+    return (M - m_min) / m_rng
+
+
 def scores_hybrid(train: sp.csr_matrix,
                    item_sim_content: np.ndarray,
                    X_als: np.ndarray, Y_als: np.ndarray,
@@ -136,14 +144,31 @@ def scores_hybrid(train: sp.csr_matrix,
     s_f = X_als @ Y_als.T
     s_e = (np.tile(expiry_vec, (train.shape[0], 1))
            if expiry_vec is not None else np.zeros_like(s_c))
+    return w_C * _row_normalize(s_c) + w_F * _row_normalize(s_f) + w_E * _row_normalize(s_e)
 
-    def norm(M):
-        m_min = M.min(axis=1, keepdims=True)
-        m_rng = M.max(axis=1, keepdims=True) - m_min
-        m_rng[m_rng == 0] = 1
-        return (M - m_min) / m_rng
 
-    return w_C * norm(s_c) + w_F * norm(s_f) + w_E * norm(s_e)
+def scores_hybrid_v2_graph(train: sp.csr_matrix,
+                            item_sim_content: np.ndarray,
+                            X_als: np.ndarray, Y_als: np.ndarray,
+                            pagerank_vec: np.ndarray,
+                            w_C: float = 0.35, w_F: float = 0.45, w_E: float = 0.20,
+                            w_G: float = 0.0,
+                            expiry_vec: np.ndarray | None = None) -> np.ndarray:
+    """
+    Extiende scores_hybrid con un cuarto término de centralidad estructural
+    (PageRank del grafo de co-ocurrencia, Hito 5). pagerank_vec es una señal
+    global por producto (idéntica para toda sesión), igual que en el sistema
+    de referencia `pagerank`. Los pesos por defecto son los seleccionados por
+    el barrido de ablación en `recommender_hybrid.py` (ver `hybrid_meta.json`
+    → `weights_v2_graph`).
+    """
+    s_c = train @ item_sim_content
+    s_f = X_als @ Y_als.T
+    s_e = (np.tile(expiry_vec, (train.shape[0], 1))
+           if expiry_vec is not None else np.zeros_like(s_c))
+    s_g = np.tile(pagerank_vec, (train.shape[0], 1))
+    return (w_C * _row_normalize(s_c) + w_F * _row_normalize(s_f)
+            + w_E * _row_normalize(s_e) + w_G * _row_normalize(s_g))
 
 
 # ---------------------------------------------------------------------------
@@ -199,6 +224,22 @@ def main() -> None:
     else:
         print(f"[warning] No se encontró {graph_metrics_path}. Ejecuta graph_analytics.py primero si deseas integrar métricas del Hito 5.")
 
+    # 2.6 Pesos del ensamble híbrido v2 (con grafo), seleccionados por el
+    # barrido de ablación de recommender_hybrid.py (Semana 13).
+    hybrid_meta_path = REC / "hybrid_meta.json"
+    default_v2_weights = {"w_C": 0.35, "w_F": 0.45, "w_E": 0.20, "w_G": 0.0}
+    if hybrid_meta_path.exists():
+        with open(hybrid_meta_path, "r", encoding="utf-8") as f:
+            hybrid_meta = json.load(f)
+        v2_weights = hybrid_meta.get("weights_v2_graph", default_v2_weights)
+    else:
+        print(f"[warning] No se encontró {hybrid_meta_path}. Ejecuta recommender_hybrid.py primero "
+              "para obtener los pesos del ablation sweep; usando pesos por defecto.")
+        v2_weights = default_v2_weights
+    print(f"[eval] Pesos hybrid_v2_graph (de hybrid_meta.json): "
+          f"w_C={v2_weights['w_C']:.2f}, w_F={v2_weights['w_F']:.2f}, "
+          f"w_E={v2_weights['w_E']:.2f}, w_G={v2_weights['w_G']:.2f}")
+
     # 3. ALS factors (re-entrenar sobre train para no contaminar)
     X_als, Y_als = als_implicit(train, factors=16, reg=1.0, alpha=20.0,
                                 iterations=12, seed=42)
@@ -212,6 +253,11 @@ def main() -> None:
         "hybrid":         scores_hybrid(train, item_sim_content, X_als, Y_als,
                                         w_C=0.35, w_F=0.45, w_E=0.20,
                                         expiry_vec=expiry_vec),
+        "hybrid_v2_graph": scores_hybrid_v2_graph(train, item_sim_content, X_als, Y_als,
+                                                   pagerank_vec,
+                                                   w_C=v2_weights["w_C"], w_F=v2_weights["w_F"],
+                                                   w_E=v2_weights["w_E"], w_G=v2_weights["w_G"],
+                                                   expiry_vec=expiry_vec),
     }
 
     summary = {}

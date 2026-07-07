@@ -1,9 +1,16 @@
 {
   "task_framing": "Masked Basket Completion (Cloze Task Style)",
-  "weights": {
+  "weights_v1_hybrid": {
     "w_C": 0.35,
     "w_F": 0.45,
     "w_E": 0.2
   },
+  "weights_v2_graph": {
+    "w_C": 0.25,
+    "w_F": 0.5,
+    "w_E": 0.25,
+    "w_G": 0.0
+  },
+  "ablation_selection_metric": "precision@5, barrido interno de 200 sesiones muestreadas sobre el 4-simplex de pesos (ver hybrid_ablation.csv)",
   "reference_date": "2026-04-26 23:59:59"
 }

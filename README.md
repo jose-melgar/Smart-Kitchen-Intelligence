@@ -1,15 +1,15 @@
 # Smart Kitchen Intelligence (SKI)
 
-**Estado Actual:** Hito 5 (Semana 12) Completado. Pipeline completo implementado y reproducible: ingesta y simulación de datos → ingeniería de características distribuidas → reducción de dimensionalidad (PCA/t-SNE) → clustering y segmentación (DBSCAN) → motor de recomendación híbrido multicapa → análisis estructural de grafos de co-ocurrencia con validación PageRank.
+**Estado Actual:** Hito 5 (Semana 12) y extensión de Semana 13 Completados. Pipeline completo implementado y reproducible: ingesta y simulación de datos → ingeniería de características distribuidas → reducción de dimensionalidad (PCA/t-SNE) → clustering y segmentación (DBSCAN) → motor de recomendación híbrido multicapa → análisis estructural de grafos de co-ocurrencia con validación PageRank → ablación de integración de PageRank al híbrido (resultado empírico: no aporta valor de re-ranking a nivel de canasta; ver `reports/graph_analytics_report.md` §5).
 
 | Hito | Semana | Estado | Métricas Operativas / Entregables |
 | :--- | :--- | :--- | :--- |
 | Pipeline de datos (ingesta, ETL, esquema) | 3 | ✅ Completado | Integridad relacional del 100% mediante `stock_id`. |
 | Feature engineering + Reducción dimensional (PCA/t-SNE) | 5 | ✅ Completado | Matriz densa 72k×61. PCA retiene 90% varianza en 30 componentes. |
 | Clustering y segmentación de comportamiento | 7 | ✅ Completado | DBSCAN ($eps=2.7, min\_samples=15$). Silhouette = 0.6549. Ruido < 0.28%. |
-| Recomendador Híbrido (Contenido + CF + Expiry) | 11 | ✅ Completado | **Catalog Coverage = 100%**, MAP@5 = 0.0539, Hybrid P@5 = 0.0455. |
+| Recomendador Híbrido (Contenido + CF + Expiry) | 11 | ✅ Completado | **Catalog Coverage = 100%**, MAP@5 = 0.0574, Hybrid P@5 = 0.0494. |
 | Análisis de grafos de co-ocurrencia transaccional | 12 | ✅ Completado | Modelado de red no dirigida. Evaluación de centralidad PageRank integrada. |
-| Motor de recomendación híbrido extendido | 13 | 🔜 Pendiente | Integración de factores de grafo al re-ranking de producción. |
+| Motor de recomendación híbrido extendido (PageRank) | 13 | ✅ Completado | Ablación 4D evaluó $w_G$; óptimo empírico $w_G=0.00$. Híbrido v1 (P@5=0.0494, MAP@5=0.0574) supera a v2 con grafo (P@5=0.0479, MAP@5=0.0560). Ver `reports/graph_analytics_report.md` §5. |
 
 ## 1. Descripción del Proyecto
 
@@ -85,7 +85,7 @@ El proyecto está estructurado en capas interdependientes y completamente desaco
     * `src/recommender_content.py`: Construye la Capa 1 (Basado en Contenido) concatenando strings cualitativos de atributos del catálogo y discretizando macros nutricionales de la USDA en tokens de texto. Aplica vectorización TF-IDF con normalización por fila $L2\_row$, permitiendo que el producto punto calcule similitudes coseno directas a ultra-alta velocidad.
     * `src/recommender_cf.py`: Construye la Capa 2 (Filtrado Colaborativo Latente) implementando el algoritmo de ALS Implícito bajo la formulación de Hu, Koren & Volinsky. Aplica la transformación analítica `tfidf_R` previa sobre la matriz de interacciones para restar peso a los productos ubiquos masivos (leche, manzanas) y selecciona el parámetro óptimo de regularización $\lambda=1.0$ tras un barrido logarítmico completo en hold-out.
     * `src/recommender_hybrid.py`: Fusiona linealmente las tres señales normalizadas por fila mediante Min-Max, inyectando el componente diferencial de urgencia física anti-desperdicio ($S_{exp} = 1/(1+d)$, días mediana para el vencimiento de unidades vivas en la despensa). Fija los pesos de producción en $w_C=0.35$, $w_F=0.45$, y $w_E=0.20$.
-    * `src/evaluation.py`: Ejecuta de forma independiente el protocolo offline global bajo el Paradigma de Tarea de Completitud de Canasta Enmascarada (Masked Basket Completion Task / Cloze Task Style). Aplica un split ciego del 20% de las interacciones no-cero (semilla 42) y evalúa el cross-selling sobre un candidate pool estricto (catálogo completo menos semillas de entrenamiento), demostrando un Catalog Coverage del 100.0%, un MAP@5 de 0.0549 y un compromiso controlado en el Precision@5 híbrido (0.0455) para priorizar el descubrimiento frente al baseline trivial de popularidad.
+    * `src/evaluation.py`: Ejecuta de forma independiente el protocolo offline global bajo el Paradigma de Tarea de Completitud de Canasta Enmascarada (Masked Basket Completion Task / Cloze Task Style). Aplica un split ciego del 20% de las interacciones no-cero (semilla 42) y evalúa el cross-selling sobre un candidate pool estricto (catálogo completo menos semillas de entrenamiento), demostrando un Catalog Coverage del 100.0%, un MAP@5 de 0.0574 y un compromiso controlado en el Precision@5 híbrido (0.0494) para priorizar el descubrimiento frente al baseline trivial de popularidad.
 
 * **Capa de Analítica de Grafos y Topología (Hito 5):**
     * `src/graph_construction.py`: Induce matemáticamente una red compleja no dirigida basada en las frecuencias de co-ocurrencia de productos dentro de las sesiones de reabastecimiento.

@@ -217,6 +217,70 @@ xelatex -interaction=nonstopmode informe_hito4.tex   # segunda pasada para refs
 ```
 *   **Salida:** `informe_hito4.pdf` (≈19 páginas).
 
+## 6. Analítica de Grafos y Centralidad (Semana 12 / Hito 5)
+
+Construye un grafo de co-ocurrencia producto-producto a partir de la matriz de sesiones de restock y calcula métricas estructurales y de centralidad PageRank.
+
+### Paso 18: Construcción del grafo
+
+Calcula la matriz de adyacencia mediante $A = R^T \cdot R$ sobre la matriz binaria de sesiones de restock y exporta la red no dirigida ponderada.
+
+```bash
+python src/graph_construction.py
+```
+*   **Entradas:** `data/recommender/R_restock_bin.npz`, `data/recommender/product_catalog.csv`
+*   **Salida:** `data/recommender/kitchen_graph.gexf`
+
+> **Resultado esperado:** 50 nodos, 1,225 aristas (grafo completo), 1 componente conexa.
+
+### Paso 19: Analítica de grafo y PageRank
+
+Calcula componentes conectadas, grado (simple y ponderado) y centralidad PageRank ($\alpha=0.85$) sobre el grafo de co-ocurrencia.
+
+```bash
+python src/graph_analytics.py
+```
+*   **Entrada:** `data/recommender/kitchen_graph.gexf`
+*   **Salida:** `data/recommender/graph_metrics.json`
+
+> **Resultado esperado:** grado ponderado medio ≈ 1,822.8 (mín 1,613 / máx 1,996); top-10 PageRank documentado en `reports/graph_analytics_report.md`.
+
+### Paso 20 (opcional): Figuras del informe de Hito 5
+
+```bash
+python src/generate_hito5_figures.py
+```
+
+> **Nota:** tras generar el grafo y sus métricas, se recomienda volver a ejecutar `python src/evaluation.py` para comparar el ranking por PageRank contra el Recomendador Híbrido bajo el mismo protocolo de evaluación.
+
+## 7. Perfilado de Clusters (deuda técnica de Hito 3)
+
+### Paso 21: Perfiles de cluster y análisis de fallos
+
+```bash
+python src/cluster_profiling.py
+```
+*   **Entradas:** `data/features/cluster_labels_refined.npy`, `data/features/feature_matrix.npy`, `data/features/feature_names.json`, `data/processed/inventory_v1.csv`
+*   **Salida:** `reports/cluster_profiles.md` (38 perfiles de cluster + failure analysis del ruido)
+
+## 8. Extensión de Grafo al Híbrido y Demo Final (Semana 13-14)
+
+### Paso 22: Ablación de pesos con PageRank y evaluación de `hybrid_v2_graph`
+
+```bash
+python src/recommender_hybrid.py   # barrido 4D (w_C, w_F, w_E, w_G) -> hybrid_meta.json, hybrid_ablation.csv
+python src/evaluation.py           # re-evalúa los 6 sistemas, incluyendo hybrid_v2_graph -> evaluation_table.csv
+```
+*   **Resultado esperado:** óptimo empírico $w_G=0.00$ (el híbrido v1 sin grafo sigue siendo superior). Ver `reports/graph_analytics_report.md` §5.
+
+### Paso 23: Demo final interactivo (Streamlit)
+
+```bash
+streamlit run src/demo_app.py
+```
+*   **Entradas:** todos los artefactos de `data/features/` y `data/recommender/` (solo lectura, sin escritura de artefactos).
+*   Permite elegir un household, ver su cluster de comportamiento dominante, sus top-5 recomendaciones híbridas v1 y el grafo de co-ocurrencia con esas 5 recomendaciones resaltadas.
+
 ### Resumen de artefactos generados por hito
 
 | Hito | Script(s) | Artefacto principal |
@@ -225,3 +289,6 @@ xelatex -interaction=nonstopmode informe_hito4.tex   # segunda pasada para refs
 | Semana 5 | `features` → `reduction` | `data/features/feature_matrix_reduced.npy` |
 | Semana 7 | `clustering` → `clustering_refinement` | `data/features/cluster_labels_refined.npy` |
 | Semana 11 | `build_R` → `recommender_content` → `normalizations` → `recommender_cf` → `cold_start` → `recommender_hybrid` → `evaluation` → `generate_hito4_figures` | `data/recommender/evaluation_table.csv` + `informe_hito4.pdf` |
+| Semana 12 | `graph_construction` → `graph_analytics` → `generate_hito5_figures` | `data/recommender/graph_metrics.json` |
+| Semana 13 | `cluster_profiling` → `recommender_hybrid` (ablación 4D) → `evaluation` | `reports/cluster_profiles.md`, `evaluation_table.csv` (+ `hybrid_v2_graph`) |
+| Semana 14 | `demo_app.py` (Streamlit) | Demo final integrado (sin artefactos nuevos, solo lectura) |

@@ -71,6 +71,29 @@ En la evaluación consolidada (`evaluation.py`), se incorporó PageRank como un 
 2. **Coverage limitada** (26%): como ranking estático (no personalizado), PageRank solo recomienda los mismos ~13 productos a todos los usuarios, similar al sesgo de popularidad.
 3. **El Hybrid sigue siendo el sistema de producción óptimo** porque combina la capacidad predictiva del CF con la diversidad completa del catálogo (100% coverage) y la señal anti-desperdicio.
 
-## 5. Conclusiones y Trabajo Futuro
+## 5. Integración de PageRank en el Recomendador Híbrido (Semana 13)
 
-La capa de grafos valida que la estructura topológica de co-compra contiene información predictiva no trivial. El paso natural (planificado para el Hito 6) es **integrar el score de PageRank como un cuarto componente del recomendador híbrido**, ponderándolo en el ensamble lineal para mejorar el re-ranking de producción sin sacrificar la cobertura del catálogo.
+Se implementó y ejecutó la extensión planteada anteriormente: un **cuarto componente de PageRank** ($w_G$) en el ensamble lineal del recomendador híbrido, junto a Contenido ($w_C$), CF ($w_F$) y Expiry ($w_E$):
+
+$$\text{score}_{v2}(\text{prod}) = w_C \cdot \text{score}_{content} + w_F \cdot \text{score}_{cf} + w_E \cdot \text{score}_{expiry} + w_G \cdot \text{score}_{pagerank}$$
+
+`src/recommender_hybrid.py` ejecuta un **barrido de ablación sobre el 4-simplex** de pesos ($w_C, w_F, w_E, w_G \geq 0$, suma 1, incrementos de 0.25 → 35 combinaciones) y selecciona la combinación ganadora por precision@5. El resultado del barrido fue:
+
+$$w_C = 0.25,\quad w_F = 0.50,\quad w_E = 0.25,\quad w_G = \mathbf{0.00}$$
+
+Es decir, **el peso óptimo encontrado para PageRank es 0.00**: ninguna combinación con $w_G > 0$ superó a las mezclas de Contenido+CF+Expiry en el barrido. Esta combinación (`hybrid_v2_graph`) se evaluó bajo el mismo protocolo consolidado de Masked Basket Completion Task (`evaluation.py`) junto a los demás sistemas:
+
+| Sistema | Precision@5 | MAP@5 | Coverage@5 |
+|---|---|---|---|
+| Hybrid (v1, sin grafo) | **0.0494** | **0.0574** | 100.0% |
+| Hybrid v2 (con grafo, $w_G=0.00$) | 0.0479 | 0.0560 | 100.0% |
+
+El híbrido v1 (sin grafo) **supera ligeramente** a la variante v2 tanto en Precision@5 (-3.0% relativo) como en MAP@5 (-2.4% relativo). Dado que $w_G=0.00$ ya en la fase de ablación, la variante v2 evaluada es funcionalmente un híbrido de 3 términos con una redistribución distinta de pesos ($w_C, w_F, w_E$) frente al v1 de producción — y esa redistribución, no el grafo, es lo que explica la pequeña caída de desempeño.
+
+### Interpretación: resultado negativo honesto, no una falla de implementación
+
+Este es un **resultado negativo válido y esperable**, no un error del pipeline: la señal de PageRank es **global y estática por producto** (idéntica para todas las sesiones), mientras que CF y Contenido ya capturan señal **específica de sesión/household**. En una tarea de *cross-selling* intra-canasta como el Masked Basket Completion Task, lo que decide el acierto es precisamente esa especificidad — qué le falta a *esta* canasta — algo que un score de centralidad de red, por diseño, no puede aportar más allá de lo que la co-ocurrencia agregada ya le enseñó al CF (ambos derivan, en última instancia, de la misma matriz $R$).
+
+Esto es coherente con lo observado en la Sección 4: PageRank como sistema aislado ya superaba a Popularity (otro ranking estático) pero no al híbrido, y su cobertura limitada (26%) confirma que es una señal de "productos universalmente centrales", no de afinidad household-específica.
+
+**Conclusión de producción:** el grafo de co-ocurrencia y su métrica de PageRank **aportan valor real, pero a nivel macro/estructural** — identificar productos "puente" que conectan clústeres de consumo dispares (Sección 3.1), auditar la topología de la red de co-compra, y servir como baseline de ranking estático competitivo frente a la popularidad — **no como señal de re-ranking a nivel de canasta individual**. El sistema de producción para recomendación se mantiene en el **híbrido v1** (Contenido + CF + Expiry, $w_C=0.35, w_F=0.45, w_E=0.20$). La integración de grafo queda documentada como extensión evaluada y descartada por evidencia empírica, no como trabajo pendiente.

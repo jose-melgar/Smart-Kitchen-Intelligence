@@ -63,6 +63,15 @@
       "coverage@k": 1.0,
       "n_eval_sessions": 968,
       "avg_truth_size": 2.1632231404958677
+    },
+    "hybrid_v2_graph": {
+      "precision@k": 0.04793388429752066,
+      "recall@k": 0.11494900301718483,
+      "nprecision@k": 0.11539256198347107,
+      "map@k": 0.055994031221303954,
+      "coverage@k": 1.0,
+      "n_eval_sessions": 968,
+      "avg_truth_size": 2.1632231404958677
     }
   }
 }

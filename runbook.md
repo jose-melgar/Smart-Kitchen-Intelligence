@@ -8,10 +8,6 @@ Este documento detalla los pasos necesarios para reproducir el pipeline de datos
 El pipeline requiere Python 3.9+ y las dependencias listadas en `requirements.txt`.
 
 ```bash
-# Crear y activar un entorno virtual
-python3 -m venv venv
-source venv/bin/activate
-
 # Instalar las dependencias de Python
 pip install -r requirements.txt
 ```

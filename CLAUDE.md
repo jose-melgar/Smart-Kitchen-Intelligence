@@ -13,8 +13,6 @@ The course brief expects a specific shape (catalog / feature / interaction / gra
 There is no build system, package entry point, or test suite — this is a sequence of standalone Python scripts, each read/writing specific paths under `data/`. **Every script must be run from the repository root** (paths like `data/recommender/R_restock_bin.npz` are hardcoded relative paths, not resolved via `__file__` or a config). There is no `argparse`/CLI config in any script — hyperparameters and file paths are hardcoded constants at the top of each `main()`-style function.
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate     # Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 ```
 

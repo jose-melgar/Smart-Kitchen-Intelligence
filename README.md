@@ -26,28 +26,24 @@ Para ejecutar el pipeline end-to-end de forma estrictamente secuencial y reprodu
 git clone [https://github.com/jose-melgar/Smart-Kitchen-Intelligence.git](https://github.com/jose-melgar/Smart-Kitchen-Intelligence.git)
 cd Smart-Kitchen-Intelligence
 
-# 2. Configurar el entorno virtual
-python3 -m venv venv
-source venv/bin/activate  # En Windows: .\venv\Scripts\activate
-
-# 3. Instalar dependencias estrictas congeladas
+# 2. Instalar dependencias estrictas congeladas
 pip install -r requirements.txt
 
-# 4. Pipeline de datos e ingesta inmutable (Hito 1)
+# 3. Pipeline de datos e ingesta inmutable (Hito 1)
 python src/extract_patterns.py   # Extrae patrones de comportamiento base desde Instacart
 python src/simulation.py         # Simula movimientos de inventario transaccionales durante 90 dias
 python src/ingestion.py          # Enriquece y valida el catalogo con la API de la USDA
 python src/preprocessing.py      # Operaciones ETL y limpieza -> data/processed/inventory_v1.csv
 
-# 5. Feature engineering y reducción dimensional espacial (Hito 2)
+# 4. Feature engineering y reducción dimensional espacial (Hito 2)
 python src/features.py           # Genera matriz densa ML utilizando CatBoost Encoding
 python src/reduction.py          # PCA (30 componentes para 90% varianza) + proyecciones t-SNE
 
-# 6. Clustering y segmentación densa de comportamiento (Hito 3)
+# 5. Clustering y segmentación densa de comportamiento (Hito 3)
 python src/clustering.py         # Benchmark K-Means / DBSCAN / GMM 
 python src/clustering_refinement.py  # Refinamiento geométrico DBSCAN -> cluster_labels_refined.npy
 
-# 7. Motor de Recomendación y Protocolo Offline Consolidado (Hito 4 — Semana 11)
+# 6. Motor de Recomendación y Protocolo Offline Consolidado (Hito 4 — Semana 11)
 python src/build_R.py                 # Construye las matrices R sobre sesiones operacionales de 60 min
 python src/recommender_content.py     # Capa 1: pseudo-documentos TF-IDF y perfiles de Households
 python src/recommender_cf.py          # Capa 2: Factorizacion ALS implicita + Lambda sweep logaritmico
@@ -56,7 +52,7 @@ python src/cold_start.py              # Flujos de arranque en frio: popularidad 
 python src/recommender_hybrid.py      # Capa 3: Ensamble lineal y barrido de sensibilidad de pesos (Ablacion)
 python src/evaluation.py              # Protocolo consolidado ciego bajo el paradigma Masked Cloze Task
 
-# 8. Analítica de Grafos y Centralidad (Hito 5 — Semana 12)
+# 7. Analítica de Grafos y Centralidad (Hito 5 — Semana 12)
 python src/graph_construction.py      # Transforma sesiones de reabastecimiento en red GEXF conexa
 python src/graph_analytics.py         # Extrae métricas estructurales globales y centralidad PageRank
 # (Nota: ejecutar nuevamente `python src/evaluation.py` para comparar el PageRank vs. el Recomendador Híbrido)

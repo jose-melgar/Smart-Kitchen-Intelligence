@@ -1,51 +1,51 @@
 product_id,product_name,category,classification,nutriscore,calories_100g,proteins_100g,carbs_100g,doc,nutri_ord
-4605,Yellow Onions,4,Purchase,A,30.0,0.68,7.43,yellow onions category_4 class_purchase,0.0
-4920,Seedless Red Grapes,4,Purchase,B,71.0,1.18,17.6,seedless red grapes category_4 class_purchase,1.0
-5077,100% Whole Wheat Bread,3,Consumption,C,256.0,11.6,48.8,100% whole wheat bread category_3 class_consumption,2.0
-5876,Organic Lemon,4,Purchase,D,300.0,0.0,6.67,organic lemon category_4 class_purchase,3.0
-8277,Apple Honeycrisp Organic,4,Purchase,Falta Dato,,0.102,14.7,apple honeycrisp organic category_4 class_purchase,
-8518,Organic Red Onion,4,Purchase,A,30.0,0.68,6.76,organic red onion category_4 class_purchase,0.0
-9076,Blueberries,1,Consumption,B,57.0,0.71,12.1,blueberries category_1 class_consumption,1.0
-10749,Organic Red Bell Pepper,4,Purchase,Falta Dato,,0.896,6.65,organic red bell pepper category_4 class_purchase,
-13176,Bag of Organic Bananas,4,Purchase,D,346.0,3.89,88.3,bag of organic bananas category_4 class_purchase,3.0
-16797,Strawberries,4,Purchase,A,36.0,0.71,9.29,strawberries category_4 class_purchase,0.0
-17794,Carrots,4,Purchase,A,38.0,1.28,8.97,carrots category_4 class_purchase,0.0
-19057,Organic Large Extra Fancy Fuji Apple,4,Purchase,Falta Dato,,0.148,15.7,organic large extra fancy fuji apple category_4 class_purchase,
-19660,Spring Water,7,Consumption,A,0.0,0.0,0.0,spring water category_7 class_consumption,0.0
-21137,Organic Strawberries,4,Purchase,A,36.0,0.71,9.29,organic strawberries category_4 class_purchase,0.0
-21616,Organic Baby Arugula,4,Purchase,A,25.0,2.82,3.52,organic baby arugula category_4 class_purchase,0.0
-21903,Organic Baby Spinach,4,Purchase,A,23.0,2.6799999999999997,3.36,organic baby spinach category_4 class_purchase,0.0
-22035,Organic Whole String Cheese,16,Purchase,B,50.0,1.45,6.25,organic whole string cheese category_16 class_purchase,1.0
-22935,Organic Yellow Onion,4,Purchase,A,30.0,0.68,7.43,organic yellow onion category_4 class_purchase,0.0
+4605,Cebollas amarillas,4,Purchase,A,30.0,0.68,7.43,yellow onions category_4 class_purchase,0.0
+4920,Uvas rojas sin semillas,4,Purchase,B,71.0,1.18,17.6,seedless red grapes category_4 class_purchase,1.0
+5077,Pan 100% integral,3,Consumption,C,256.0,11.6,48.8,100% whole wheat bread category_3 class_consumption,2.0
+5876,Limón orgánico,4,Purchase,D,300.0,0.0,6.67,organic lemon category_4 class_purchase,3.0
+8277,Manzana honeycrisp orgánica,4,Purchase,Falta Dato,,0.102,14.7,apple honeycrisp organic category_4 class_purchase,
+8518,Cebolla roja orgánica,4,Purchase,A,30.0,0.68,6.76,organic red onion category_4 class_purchase,0.0
+9076,Arándanos,1,Consumption,B,57.0,0.71,12.1,blueberries category_1 class_consumption,1.0
+10749,Pimiento rojo orgánico,4,Purchase,Falta Dato,,0.896,6.65,organic red bell pepper category_4 class_purchase,
+13176,Bolsa de plátanos orgánicos,4,Purchase,D,346.0,3.89,88.3,bag of organic bananas category_4 class_purchase,3.0
+16797,Fresas,4,Purchase,A,36.0,0.71,9.29,strawberries category_4 class_purchase,0.0
+17794,Zanahorias,4,Purchase,A,38.0,1.28,8.97,carrots category_4 class_purchase,0.0
+19057,Manzana fuji orgánica grande extra fancy,4,Purchase,Falta Dato,,0.148,15.7,organic large extra fancy fuji apple category_4 class_purchase,
+19660,Agua de manantial,7,Consumption,A,0.0,0.0,0.0,spring water category_7 class_consumption,0.0
+21137,Fresas orgánicas,4,Purchase,A,36.0,0.71,9.29,organic strawberries category_4 class_purchase,0.0
+21616,Rúcula bebé orgánica,4,Purchase,A,25.0,2.82,3.52,organic baby arugula category_4 class_purchase,0.0
+21903,Espinacas tiernas orgánicas,4,Purchase,A,23.0,2.68,3.36,organic baby spinach category_4 class_purchase,0.0
+22035,Queso en hebras ecológico,16,Purchase,B,50.0,1.45,6.25,organic whole string cheese category_16 class_purchase,1.0
+22935,Cebolla amarilla orgánica,4,Purchase,A,30.0,0.68,7.43,organic yellow onion category_4 class_purchase,0.0
 24852,Banana,4,Purchase,D,312.0,12.5,40.6,banana category_4 class_purchase,3.0
-24964,Organic Garlic,4,Purchase,C,167.0,0.0,33.3,organic garlic category_4 class_purchase,2.0
-26209,Limes,4,Purchase,A,30.0,0.0,10.4,limes category_4 class_purchase,0.0
-26604,Organic Blackberries,4,Purchase,B,59.0,1.47,15.4,organic blackberries category_4 class_purchase,1.0
-27086,Half & Half,16,Purchase,B,131.0,3.13,4.3,half & half category_16 class_purchase,1.0
-27104,Fresh Cauliflower,4,Purchase,B,52.0,1.94,5.01,fresh cauliflower category_4 class_purchase,1.0
-27845,Organic Whole Milk,16,Purchase,B,62.0,3.39,5.08,organic whole milk category_16 class_purchase,1.0
-27966,Organic Raspberries,4,Purchase,B,50.0,1.43,12.1,organic raspberries category_4 class_purchase,1.0
-28204,Organic Fuji Apple,4,Purchase,D,400.0,0.0,90.0,organic fuji apple category_4 class_purchase,3.0
-28985,Michigan Organic Kale,4,Purchase,A,35.0,2.92,4.42,michigan organic kale category_4 class_purchase,0.0
-30391,Organic Cucumber,4,Purchase,A,34.0,0.5,6.79,organic cucumber category_4 class_purchase,0.0
-30489,Original Hummus,20,Consumption,C,214.0,7.14,14.3,original hummus category_20 class_consumption,2.0
-31717,Organic Cilantro,4,Purchase,A,0.0,0.0,0.0,organic cilantro category_4 class_purchase,0.0
-34126,Organic Italian Parsley Bunch,4,Purchase,D,392.0,7.43,76.25,organic italian parsley bunch category_4 class_purchase,3.0
-35951,Organic Unsweetened Almond Milk,16,Consumption,A,15.0,0.55,0.34,organic unsweetened almond milk category_16 class_consumption,0.0
-37646,Organic Gala Apples,4,Purchase,B,52.0,0.32,14.3,organic gala apples category_4 class_purchase,1.0
-39275,Organic Blueberries,4,Purchase,B,57.0,0.71,12.1,organic blueberries category_4 class_purchase,1.0
-39877,Organic Granny Smith Apple,4,Purchase,Falta Dato,,0.266,14.1,organic granny smith apple category_4 class_purchase,
-40706,Organic Grape Tomatoes,4,Purchase,A,36.0,1.19,7.14,organic grape tomatoes category_4 class_purchase,0.0
-41950,Organic Tomato Cluster,4,Purchase,A,28.0,2.98,5.06,organic tomato cluster category_4 class_purchase,0.0
-42265,Organic Baby Carrots,4,Purchase,A,35.0,1.18,8.24,organic baby carrots category_4 class_purchase,0.0
-43352,Raspberries,4,Purchase,B,50.0,1.43,12.1,raspberries category_4 class_purchase,1.0
-44359,Organic Small Bunch Celery,4,Purchase,D,392.0,7.43,76.25,organic small bunch celery category_4 class_purchase,3.0
-44632,Sparkling Water Grapefruit,7,Consumption,A,0.0,0.0,0.0,sparkling water grapefruit category_7 class_consumption,0.0
-45007,Organic Zucchini,4,Purchase,A,21.0,1.05,4.21,organic zucchini category_4 class_purchase,0.0
-45066,Honeycrisp Apple,4,Purchase,A,2.0,0.0,3.81,honeycrisp apple category_4 class_purchase,0.0
-46979,Asparagus,4,Purchase,A,18.0,2.35,3.53,asparagus category_4 class_purchase,0.0
-47209,Organic Hass Avocado,4,Purchase,Falta Dato,,1.81,8.32,organic hass avocado category_4 class_purchase,
-47626,Large Lemon,4,Purchase,B,55.0,10.7,2.36,large lemon category_4 class_purchase,1.0
-47766,Organic Avocado,4,Purchase,D,427.0,1.9,7.36,organic avocado category_4 class_purchase,3.0
-49235,Organic Half & Half,16,Purchase,B,131.0,3.13,4.3,organic half & half category_16 class_purchase,1.0
-49683,Cucumber Kirby,4,Purchase,A,34.0,0.5,6.79,cucumber kirby category_4 class_purchase,0.0
+24964,Ajo orgánico,4,Purchase,C,167.0,0.0,33.3,organic garlic category_4 class_purchase,2.0
+26209,Limas,4,Purchase,A,30.0,0.0,10.4,limes category_4 class_purchase,0.0
+26604,Moras orgánicas,4,Purchase,B,59.0,1.47,15.4,organic blackberries category_4 class_purchase,1.0
+27086,Mitad y mitad,16,Purchase,B,131.0,3.13,4.3,half & half category_16 class_purchase,1.0
+27104,Coliflor fresca,4,Purchase,B,52.0,1.94,5.01,fresh cauliflower category_4 class_purchase,1.0
+27845,Leche entera orgánica,16,Purchase,B,62.0,3.39,5.08,organic whole milk category_16 class_purchase,1.0
+27966,Frambuesas orgánicas,4,Purchase,B,50.0,1.43,12.1,organic raspberries category_4 class_purchase,1.0
+28204,Manzana fuji orgánica,4,Purchase,D,400.0,0.0,90.0,organic fuji apple category_4 class_purchase,3.0
+28985,Col rizada orgánica de michigan,4,Purchase,A,35.0,2.92,4.42,michigan organic kale category_4 class_purchase,0.0
+30391,Pepino orgánico,4,Purchase,A,34.0,0.5,6.79,organic cucumber category_4 class_purchase,0.0
+30489,Humus originales,20,Consumption,C,214.0,7.14,14.3,original hummus category_20 class_consumption,2.0
+31717,Cilantro orgánico,4,Purchase,A,0.0,0.0,0.0,organic cilantro category_4 class_purchase,0.0
+34126,Manojo de perejil italiano orgánico,4,Purchase,D,392.0,7.43,76.25,organic italian parsley bunch category_4 class_purchase,3.0
+35951,Leche de almendras sin azúcar ecológica,16,Consumption,A,15.0,0.55,0.34,organic unsweetened almond milk category_16 class_consumption,0.0
+37646,Manzanas gala ecológicas,4,Purchase,B,52.0,0.32,14.3,organic gala apples category_4 class_purchase,1.0
+39275,Arándanos orgánicos,4,Purchase,B,57.0,0.71,12.1,organic blueberries category_4 class_purchase,1.0
+39877,Manzana granny smith orgánica,4,Purchase,Falta Dato,,0.266,14.1,organic granny smith apple category_4 class_purchase,
+40706,Tomates uva orgánicos,4,Purchase,A,36.0,1.19,7.14,organic grape tomatoes category_4 class_purchase,0.0
+41950,Racimo de tomate orgánico,4,Purchase,A,28.0,2.98,5.06,organic tomato cluster category_4 class_purchase,0.0
+42265,Zanahorias pequeñas orgánicas,4,Purchase,A,35.0,1.18,8.24,organic baby carrots category_4 class_purchase,0.0
+43352,Frambuesas,4,Purchase,B,50.0,1.43,12.1,raspberries category_4 class_purchase,1.0
+44359,Apio en manojo pequeño ecológico,4,Purchase,D,392.0,7.43,76.25,organic small bunch celery category_4 class_purchase,3.0
+44632,Pomelo con agua con gas,7,Consumption,A,0.0,0.0,0.0,sparkling water grapefruit category_7 class_consumption,0.0
+45007,Calabacín orgánico,4,Purchase,A,21.0,1.05,4.21,organic zucchini category_4 class_purchase,0.0
+45066,Manzana crujiente con miel,4,Purchase,A,2.0,0.0,3.81,honeycrisp apple category_4 class_purchase,0.0
+46979,Espárragos,4,Purchase,A,18.0,2.35,3.53,asparagus category_4 class_purchase,0.0
+47209,Aguacate hass orgánico,4,Purchase,Falta Dato,,1.81,8.32,organic hass avocado category_4 class_purchase,
+47626,Limón grande,4,Purchase,B,55.0,10.7,2.36,large lemon category_4 class_purchase,1.0
+47766,Aguacate orgánico,4,Purchase,D,427.0,1.9,7.36,organic avocado category_4 class_purchase,3.0
+49235,Mitad y mitad orgánicas,16,Purchase,B,131.0,3.13,4.3,organic half & half category_16 class_purchase,1.0
+49683,Kirby de pepino,4,Purchase,A,34.0,0.5,6.79,cucumber kirby category_4 class_purchase,0.0

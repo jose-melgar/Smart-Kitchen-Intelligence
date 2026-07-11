@@ -1,0 +1,420 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- PAQUETES DE CONFIGURACIÓN, MATEMÁTICA Y DISEÑO AVANZADO ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox} % Para cajas de texto elegantes tipo dashboard
+\usepackage{array}
+
+% --- CONFIGURACIÓN DE MÁRGENES ESTÁNDAR TÉCNICO ---
+\geometry{top=3cm, bottom=3cm, left=2.5cm, right=2.5cm}
+
+% --- DEFINICIÓN DE COLORES CORPORATIVOS ---
+\definecolor{upcblue}{RGB}{10, 34, 64}      % Azul Oscuro Institucional
+\definecolor{techgray}{RGB}{80, 90, 100}    % Gris Técnico para Subtítulos
+\definecolor{lightbg}{RGB}{245, 247, 250}   % Fondo Gris Claro para Cajas
+\definecolor{borderblue}{RGB}{0, 102, 204}  % Borde de paneles informativos
+
+% --- CONFIGURACIÓN DE ENLACES Y METADATOS ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=upcblue,
+    filecolor=magenta,      
+    urlcolor=borderblue,
+    pdftitle={Informe Técnico Final - SKI},
+    pdfauthor={Gabriel Reyna, José Melgar},
+    pdfpagemode=UseNone
+}
+
+% --- ESTILIZACIÓN DE ENCABEZADOS DE SECCIÓN (TITLESEC) ---
+\titleformat{\section}{\color{upcblue}\normalfont\Large\bfseries}{\thesection.}{0.5em}{}[{\color{upcblue}\titlerule[1.5pt]}]
+\titleformat{\subsection}{\color{techgray}\normalfont\large\bfseries}{\thesubsection.}{0.5em}{}
+
+% --- CONFIGURACIÓN DE ENCABEZADOS Y PIES DE PÁGINA (FANCYHDR) ---
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small \color{techgray}Smart Kitchen Intelligence (SKI)}
+\rhead{\small \color{techgray}\leftmark}
+\rfoot{\thepage}
+\lfoot{\small \color{techgray}UPC $\cdot$ Ciencias de la Computación}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+% --- CONFIGURACIÓN DE CAJAS PERSONALIZADAS ---
+\newtcolorbox{techbox}[1]{
+    colback=lightbg,
+    colframe=upcblue,
+    fonttitle=\bfseries,
+    title=#1,
+    boxrule=1pt,
+    arc=4pt,
+    bottom=8pt,
+    top=8pt
+}
+
+\begin{document}
+
+% =========================================================================
+% CARÁTULA FORMAL INSTITUCIONAL (ESTILO UPC)
+% =========================================================================
+\begin{titlepage}
+    \centering
+    {\large \textbf{UNIVERSIDAD PERUANA DE CIENCIAS APLICADAS}} \\[0.3cm]
+    {\large \color{techgray}FACULTAD DE INGENIERÍA} \\[0.3cm]
+    {\large \color{techgray}CARRERA PROFESIONAL DE CIENCIAS DE LA COMPUTACIÓN} \\[1.5cm]
+    
+    % Marcador de espacio para logotipo (puedes descomentar la línea si tienes la imagen)
+    % \includegraphics[width=0.35\textwidth]{logo_upc.png} \\[1cm]
+    \vspace*{1.5cm}
+    \rule{\linewidth}{2pt} \\[0.5cm]
+    {\LARGE \bfseries \color{upcblue} TRABAJO FINAL CONSOLIDADO Y DEFENSA} \\[0.4cm]
+    {\Large \textbf{Smart Kitchen Intelligence (SKI)}} \\[0.2cm]
+    {\large \color{techgray}Analítica avanzada e IA aplicada a la mitigación del desperdicio de alimentos} \\[0.5cm]
+    \rule{\linewidth}{2pt} \\[2.5cm]
+    
+    \begin{flushleft}
+        \large
+        \textbf{Curso:} Big Data $\cdot$ NRC 18519 \\[0.3cm]
+        \textbf{Autor(es):} \\
+        $\bullet$ Melgar Puertas, José Guillermo \\
+        $\bullet$ Reyna Alvarado, Gabriel Alonso \\[0.3cm]
+        \textbf{Profesor:} \\
+        $\bullet$ Alarcon Delgado, Carlos Adrian
+    \end{flushleft}
+    
+    \vfill
+    {\large Lima, Julio de 2026}
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+% =========================================================================
+% SECCIÓN 1
+% =========================================================================
+\section{Declaración del Problema (Problem Statement)}
+El desperdicio de alimentos a nivel doméstico constituye uno de los desafíos operativos, económicos y ambientales más críticos de las cadenas de suministro modernas. La falta de visibilidad en tiempo real sobre el estado del inventario de una cocina, combinada con la incapacidad de predecir con rigor los hábitos de consumo de los hogares, genera ineficiencias sistemáticas que culminan en la descomposición de productos perecederos o en quiebres de stock innecesarios.
+
+Desde una perspectiva analítica, este problema puede formularse como la optimización de un sistema dinámico de decisiones de reabastecimiento y consumo bajo incertidumbre temporal y multivariada. El objetivo de este proyecto consiste en modelar, segmentar y predecir estas transacciones para transformar una cocina convencional en un ecosistema inteligente (\textit{Smart Kitchen}).
+
+Matemáticamente, definimos la mitigación del desperdicio como la maximización de una función de utilidad híbrida para un hogar $h$ en un instante de tiempo $t$. Esta función debe balancear la probabilidad de reposición de un producto $i$, su afinidad histórica con el perfil de consumo familiar y su urgencia crítica de vencimiento, minimizando la probabilidad de que un artículo alcance un estado de expiración antes de ser consumido:
+
+\begin{equation}
+\min \sum_{i \in I} P(\text{Expiración}_i > t \mid \text{Inventario}_{h,t}) \cdot \mathcal{L}(\text{Nutrientes}_i)
+\end{equation}
+
+Donde $\mathcal{L}$ representa una función de pérdida asociada a la degradación de la calidad alimentaria y nutricional del ecosistema doméstico.
+
+% =========================================================================
+% SECCIÓN 2
+% =========================================================================
+\section{Contexto del Dominio (Domain Context)}
+El desarrollo de soluciones analíticas aplicadas a hogares se enmarca en la convergencia del Internet de las Cosas (IoT), el almacenamiento de Big Data y los sistemas distribuidos de recomendación en tiempo real. En una cocina inteligente ideal, los sensores de peso, lectores de códigos de barras y cámaras de visión artificial registran continuamente eventos de entrada (\texttt{IN}) y salida (\texttt{OUT}) de productos. No obstante, la captura de datos crudos es insuficiente si no se cuenta con una capa de inteligencia capaz de modelar el comportamiento humano.
+
+El comportamiento de abastecimiento no es homogéneo; varía drásticamente entre hogares debido a factores como el tamaño de la familia, las restricciones dietéticas (medidas a través de indicadores como el \textit{Nutriscore}) y las rutinas laborales (patrones temporales de compra). Por lo tanto, el sistema de referencia no puede tratarse de forma estática. Debe ser capaz de capturar la co-ocurrencia transaccional (qué productos se consumen juntos en una misma sesión de cocina) y resolver el problema del arranque en frío (\textit{Cold Start}), simulando cómo se asimila una nueva familia en la red sin registros históricos previos, utilizando únicamente un conjunto inicial de productos semilla (\textit{seed items}).
+
+% =========================================================================
+% SECCIÓN 3
+% =========================================================================
+\section{Fuentes de Datos y Condiciones de Acceso (Dataset Sources)}
+Para garantizar el realismo estadístico y la viabilidad del proyecto, se implementó una estrategia de construcción de datos de origen mixto (Track B - \textit{Build-Your-Own Dataset}), evitando por diseño el uso no autorizado de datos personales o técnicas invasivas de extracción web. El ecosistema de datos se compone de tres fuentes principales:
+
+\begin{enumerate}
+    \item \textbf{Instacart Market Basket Analysis (Kaggle):} Se extrajeron las distribuciones de probabilidad base asociadas a la frecuencia de los productos, las tasas de recompra y las correlaciones temporales de los pedidos (hora del día y día de la semana). Estas distribuciones parametrizan el simulador estocástico para asegurar que las transacciones sigan comportamientos de consumo reales.
+    \item \textbf{USDA FoodData Central API:} El catálogo de productos fue enriquecido mediante consultas directas a la API del Departamento de Agricultura de los Estados Unidos (USDA), asociando a cada identificador único (\texttt{product\_id}) metadatos nutricionales rigurosos: contenido macro-nutricional (proteínas, carbohidratos, grasas), densidad calórica y el índice estandarizado de calidad alimentaria \textit{Nutriscore}.
+    \item \textbf{Motor de Simulación Estocástica SKI Engine:} Implementado en los scripts nativos del backend, este componente generó un volumen controlado de 25,445 transacciones secuenciales mapeadas a lo largo del tiempo, almacenadas originalmente en el artefacto crudo \texttt{movements\_raw.csv}.
+\end{enumerate}
+
+% =========================================================================
+% SECCIÓN 4
+% =========================================================================
+\section{Esquema y Diccionario de Datos (Schema and Data Dictionary)}
+El diseño de la base de datos sigue un enfoque analítico basado en un \textbf{Esquema de Estrella (Star Schema)} optimizado para Big Data. Este modelo centraliza los flujos agregacionales pesados en una única tabla de hechos transaccionales, evitando los costosos cruces de tablas múltiples (\textit{multi-table joins}) propios de los modelos relacionales de normalización estricta (OLTP).
+
+\subsection{Estructura del Esquema Estrella}
+\begin{itemize}
+    \item \textbf{Tabla de Hechos:} \texttt{fact\_inventory\_events} (Persistida físicamente como la única fuente de verdad en \texttt{data/processed/inventory\_v1.csv}).
+    \item \textbf{Tablas de Dimensiones:} 
+    \begin{itemize}
+        \item \texttt{dim\_products}: Contiene los metadatos fijos del catálogo, la taxonomía y las variables USDA.
+        \item \texttt{dim\_households}: Atributos sintéticos e ID artificial de los hogares evaluados.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Diccionario de Datos Canónico}
+
+\subsubsection{Tabla de Hechos: \texttt{inventory\_v1.csv} (25,445 registros)}
+\begin{table}[h!]
+\centering
+\small
+\caption{Estructura de la tabla de hechos unificada}
+\vspace{0.2cm}
+\begin{tabular}{llll}
+\toprule
+\textbf{Columna} & \textbf{Tipo} & \textbf{Descripción} & \textbf{Formato / Rango} \\
+\midrule
+\texttt{event\_id} & String & Identificador único del evento. & PK. Ej: \texttt{hh0\_ev142} \\
+\texttt{household\_id} & Integer & ID único asignado al hogar. & FK. Rango: [0-9] \\
+\texttt{product\_id} & Integer & Código único del producto en catálogo. & FK. Rango: [0-49] \\
+\texttt{stock\_id} & String & Código de lote físico de la despensa. & Diferencia unidades. \\
+\texttt{event\_type} & Categórico & Acción efectuada sobre el inventario. & \texttt{IN} / \texttt{OUT} \\
+\texttt{timestamp} & Datetime & Fecha y hora exacta de ejecución. & \texttt{YYYY-MM-DD HH:MM:SS} \\
+\texttt{expiry\_date} & Datetime & Fecha calculada de caducidad teórica. & Válido solo en ingresos. \\
+\texttt{quantity} & Float & Volumen o masa transaccionada. & Valor positivo $> 0$. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Matriz de Características Refinada: \texttt{feature\_matrix.npy} ($72,000 \times 61$)}
+\begin{itemize}
+    \item \textbf{Filas (72,000):} Array indexado que representa cada estado de sesión transaccional desagregado por evento temporal.
+    \item \textbf{Columnas (61):} Vector Denso compuesto por: 4 variables de nutrientes normalizadas, 2 componentes cíclicos temporales, 50 pesos de texto TF-IDF por producto, y 5 columnas resultantes del CatBoost Target Encoding.
+\end{itemize}
+
+% =========================================================================
+% SECCIÓN 5
+% =========================================================================
+\section{Preprocesamiento e Ingeniería de Características (Preprocessing)}
+La transformación de los datos crudos en tensores densos aptos para algoritmos de clustering y matrices de recomendación requiere de un pipeline matemático estrictamente secuencial.
+
+\subsection{Normalización de Nutrientes mediante Z-Score}
+Para evitar que variables con escalas métricas macro-densas (como las calorías) eclipsen a variables con rangos micro (como los gramos de grasa), las variables continuas de la USDA fueron transformadas mediante estandarización estadística clásica:
+\begin{equation}
+z = \frac{x - \mu}{\sigma}
+\end{equation}
+
+\subsection{Ingeniería de Variables Temporales Cíclicas}
+Las horas del día ($H \in [0, 23]$) poseen una naturaleza cíclica. Forzar una escala lineal alteraría los algoritmos de distancia espacial. Por lo tanto, se aplicó una transformación matemática trigonométrica mapeando la variable temporal a un espacio bidimensional en el círculo unitario:
+\begin{equation}
+x_{\sin} = \sin\left(\frac{2\pi \cdot H}{24}\right), \quad x_{\cos} = \cos\left(\frac{2\pi \cdot H}{24}\right)
+\end{equation}
+
+\subsection{CatBoost Target Encoding para Alta Cardinalidad}
+Para comprimir los identificadores categóricos discretos evitando la dispersión extrema de alternativas tradicionales como \textit{One-Hot Encoding}, se implementó un codificador basado en el cálculo de la probabilidad condicional de ocurrencia (Target Encoding), suavizado mediante un parámetro a priori para evitar el \textit{target leakage}:
+\begin{equation}
+\hat{x}_{i} = \frac{\sum_{j \in \mathcal{D}_k} y_j + \alpha \cdot p}{\left|\mathcal{D}_k\right| + \alpha}
+\end{equation}
+
+\subsection{Vectorización semántica TF-IDF del Catálogo}
+El texto descriptivo de los ingredientes y las combinaciones de categorías de productos fue transformado utilizando la ponderación de frecuencia de término e inversa de documento (TF-IDF):
+\begin{equation}
+\text{TF-IDF}(t, d, D) = \text{TF}(t, d) \times \log\left(\frac{|D|}{1 + |\{d \in D : t \in d\}|}\right)
+\end{equation}
+
+% =========================================================================
+% SECCIÓN 6
+% =========================================================================
+\section{Análisis de Reducción de Dimensionalidad (Dimensionality)}
+La matriz de características canónica $\mathbf{X} \in \mathbb{R}^{72000 \times 61}$ exhibe una alta cardinalidad y multicolinealidad intrínseca. Para mitigar la maldición de la dimensionalidad, eliminar el ruido estocástico de fondo y optimizar el costo computacional de los modelos geométricos posteriores, se implementó un pipeline de reducción dimensional híbrido combinando Análisis de Componentes Principales (PCA) y \textit{t-Distributed Stochastic Neighbor Embedding} (t-SNE).
+
+\subsection{Análisis de Componentes Principales (PCA)}
+El subespacio lineal óptimo fue determinado mediante la descomposición en valores singulares (SVD) de la matriz de covarianza muestral $\mathbf{\Sigma}$:
+\begin{equation}
+\mathbf{\Sigma} = \frac{1}{n-1} \mathbf{X}_{std}^T \mathbf{X}_{std} = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^T
+\end{equation}
+
+Estableciendo un umbral estricto de retención de energía informativa $\text{CEVR}(k) \ge 0.90$, el análisis espectral determinó de forma exacta que \textbf{$k = 30$ componentes principales} preservan el \textbf{90.01\% de la varianza total} del sistema. La proyección lineal final se computa como: $\mathbf{Z} = \mathbf{X}_{std} \mathbf{V}_k \in \mathbb{R}^{72000 \times 30}$.
+
+\subsection{Visualización No Lineal mediante t-SNE}
+Para la inspección visual cualitativa del espacio geométrico se proyectó la matriz reducida $\mathbf{Z}$ a un espacio bidimensional $\mathbf{Y} \in \mathbb{R}^{72000 \times 2}$ mediante t-SNE, minimizando la divergencia de Kullback-Leibler entre las probabilidades conjuntas $p_{ij}$ y $q_{ij}$:
+\begin{equation}
+\mathcal{L}_{KL} = \sum_{i \neq j} p_{ij} \log \frac{p_{ij}}{q_{ij}}
+\end{equation}
+
+La optimización reveló estructuras topológicas complejas y agrupamientos densos no lineales que justifican el descarte de modelos de clustering puramente esféricos.
+
+% =========================================================================
+% SECCIÓN 7
+% =========================================================================
+\section{Análisis de Clustering y Perfilado (Clustering Analysis)}
+El objetivo de esta capa es segmentar dinámicamente los estados transaccionales de los hogares en patrones de comportamiento estables. Se ejecutó un benchmark experimental riguroso evaluando K-Means, GMM, HDBSCAN y DBSCAN sobre la matriz reducida $\mathbf{Z}$.
+
+\subsection{Criterio de Validación Matemática}
+La calidad de la separación y la cohesión espacial de las estructuras encontradas se evaluó de forma interna mediante el coeficiente de silueta (\textit{Silhouette Score}) agregado:
+\begin{equation}
+S = \frac{1}{n} \sum_{i=1}^n \frac{b(i) - a(i)}{\max(a(i), b(i))}
+\end{equation}
+
+\subsection{Resultados del Benchmark y Selección del Modelo}
+K-Means y GMM fallaron en capturar densidades asimétricas, alcanzando un Silhouette máximo deficiente de $0.54$. El algoritmo \textbf{DBSCAN} refinado resultó ganador indiscutible, alcanzando un \textbf{Silhouette Score óptimo de 0.6549} bajo la parametrización de radio de vecindad $\epsilon = 2.7$ y densidad crítica $MinSamples = 15$. El algoritmo clasificó el espacio en \textbf{38 clusters estables} bien definidos y un \textbf{0.28\% de puntos de ruido} aislado asignados a la etiqueta genérica $\text{label} = -1$.
+
+\subsection{Análisis de Fallas (Failure Analysis) del Ruido}
+\begin{techbox}{Análisis de Registros Atípicos}
+El análisis de perfiles de los 71 registros catalogados como ruido desveló patrones de comportamiento transaccional aislados. Estos puntos corresponden a eventos con volúmenes de cantidad anómalos (por encima de 4 desviaciones estándar de la media de su propia categoría) combinados con marcas temporales en la madrugada (ventanas de baja densidad logística entre las 02:00 y las 04:30 horas). Al aislar geométricamente estos elementos atípicos, DBSCAN protegió de contaminación analítica a los vectores base del recomendador híbrido.
+\end{techbox}
+
+% =========================================================================
+% SECCIÓN 8
+% =========================================================================
+\section{Sistema de Recomendación y Ranking Híbrido (Recommender)}
+El motor principal de inferencia unifica la modelación descriptiva con algoritmos predictivos adaptativos, formulando una ecuación de ensamble lineal de 4 componentes optimizada en el espacio afín (Ablación 4D). El ranking final de un producto $i$ para un hogar $h$ en una ventana temporal con fecha de referencia $t_{ref}$ se calcula mediante la combinación convexa:
+\begin{equation}
+S_{\text{hybrid}}(h, i) = w_C \cdot S_{\text{content}}(h, i) + w_F \cdot S_{\text{cf}}(h, i) + w_E \cdot S_{\text{expiry}}(h, i) + w_G \cdot S_{\text{pagerank}}(i)
+\end{equation}
+Sujeto a la restricción estricta de normalización de pesos $\sum w = 1$.
+
+\subsection{Componente 1: Score de Contenido Semántico ($S_{\text{content}}$)}
+Construye el perfil histórico de interés del hogar $\vec{u}_h$ promediando los vectores densos TF-IDF ($\vec{v}_j$) de los artículos que el hogar ha extraído del inventario (\texttt{event\_type == OUT}):
+\begin{equation}
+\vec{u}_h = \frac{1}{|E_{h,OUT}|} \sum_{j \in E_{h,OUT}} \vec{v}_j \quad \Longrightarrow \quad S_{\text{content}}(h, i) = \frac{\vec{u}_h \cdot \vec{v}_i}{\lVert \vec{u}_h \rVert \lVert \vec{v}_i \rVert}
+\end{equation}
+
+\subsection{Componente 2: Filtrado Colaborativo Latente ALS ($S_{\text{cf}}$)}
+A partir de la matriz de interacciones filtrada por sesiones de reabastecimiento $\mathbf{R} \in \mathbb{R}^{m \times f}$, se implementó un modelo de factorización matricial por Mínimos Cuadrados Alternativos Implícitos (iALS), transformando los conteos en variables de preferencia binaria $p_{ui}$ y confianza $c_{ui} = 1 + \alpha r_{ui}$, minimizando la función de costo regularizada por penalización de norma $\ell_2$:
+\begin{equation}
+\mathcal{L}_{ALS} = \sum_{u, i} c_{ui} (p_{ui} - \vec{x}_u^T \vec{y}_i)^2 + \lambda \left( \sum_u \lVert \vec{x}_u \rVert^2 + \sum_i \lVert \vec{y}_i \rVert^2 \right)
+\end{equation}
+
+Para calcular las sugerencias interactivas de una sesión activa en el frontend (Arranque en frío), el vector de usuario se resuelve analíticamente mediante proyección inversa de un solo paso (\textit{Partial Collaborative Filtering}): $\vec{x}_{\text{sess}} = \left( \mathbf{Y}^T \mathbf{Y} + \lambda \mathbf{I} \right)^{-1} \mathbf{Y}^T \vec{p}$. El score resultante se proyecta como: $S_{\text{cf}}(h, i) = \vec{x}_{\text{sess}}^T \vec{y}_i$.
+
+\subsection{Componente 3: Alerta Crítica Anti-Desperdicio ($S_{\text{expiry}}$)}
+Mide la urgencia temporal de los alimentos analizando el inventario neto remanente en la despensa. Si un lote del producto $i$ posee una fecha física de expiración $t_{\text{expiry}}$, el diferencial de tiempo en días respecto al momento actual se calcula como $\Delta d = t_{\text{expiry}} - t_{\text{ref}}$. La métrica de urgencia de consumo se modela mediante la función hiperbólica asintótica:
+\begin{equation}
+S_{\text{expiry}}(h, i) = \frac{1}{1 + \max(0, \Delta d)}
+\end{equation}
+
+\subsection{Componente 4: Centralidad Topológica de Red ($S_{\text{pagerank}}$)}
+Extrae el peso de PageRank ponderado del producto, actuando como una fuerza reguladora global de cross-selling que evita la distribución y favorece productos de alta rotación estructural.
+
+\subsection{Resultados del Barrido de Pesos}
+\begin{techbox}{Vector de Combinación Óptimo en Producción}
+La optimización en producción de la combinación lineal (guardada estáticamente en el archivo de metadatos \texttt{hybrid\_meta.json}) fijó el vector de ponderación óptimo en:
+\begin{equation}
+(w_C, w_F, w_E, w_G) = (0.35, 0.45, 0.20, 0.00)
+\end{equation}
+El término del grafo $w_G = 0.00$ responde a una decisión técnica crítica: incorporar el PageRank directamente como una fuerza aditiva lineal saturaba las recomendaciones personalizadas con productos universales. Por consiguiente, se decidió desacoplar el PageRank del ensamble lineal y utilizarlo como un estimador independiente y contextual en el frontend, actuando como el indicador exclusivo del ``Pilar de la Despensa''.
+\end{techbox}
+
+% =========================================================================
+% SECCIÓN 9
+% =========================================================================
+\section{Analítica de Grafos y Redes de Co-ocurrencia (Graph Analytics)}
+Para capturar la estructura de las interacciones transaccionales más allá de los límites vectoriales indexados, se modeló el catálogo como un \textbf{Grafo No Dirigido Ponderado Producto-Producto} $\mathcal{G} = (\mathcal{V}, \mathcal{E}, \mathcal{W})$.
+
+\subsection{Construcción de la Matriz de Adjacencia Ponderada}
+Los nodos $\mathcal{V}$ representan los 50 productos del catálogo. La fuerza de los enlaces (aristas $\mathcal{E}$) se conserva de la proyección interna de la matriz binaria de sesiones de reabastecimiento $\mathbf{R}_{\text{restock\_bin}} \in \mathbb{R}^{1177 \times 50}$, cuya multiplicación de transpuesta captura la co-ocurrencia exacta agregada:
+\begin{equation}
+W_{ij} = \begin{cases} (\mathbf{R}_{\text{restock\_bin}}^T \mathbf{R}_{\text{restock\_bin}})_{ij} & \text{si } i \neq j \\ 0 & \text{si } i = j \end{cases}
+\end{equation}
+El grafo resultante consta de \textbf{50 nodos y 1,225 aristas posibles}, conformando una topología densa.
+
+\subsection{Análisis Topológico Espectral mediante PageRank Ponderado}
+La influencia de cada ingrediente en la cocina se evaluó calculando la distribución de probabilidad estacionaria de una cadena de Markov sobre el grafo ponderado mediante la ecuación de PageRank con factor de amortiguamiento estandarizado ($d = 0.85$):
+\begin{equation}
+\vec{p} = \left( \frac{1 - d}{n} \mathbf{E} + d \mathbf{W} \mathbf{D}^{-1} \right) \vec{p}
+\end{equation}
+Donde $\mathbf{E}$ es una matriz unitaria densa de unos, $\mathbf{D} = \text{diag}(k_1, k_2, \dots, k_n)$ es la matriz de grados ponderados donde $k_i = \sum_{j} W_{ij}$, y $\vec{p}$ es el vector propio dominante correspondiente al autovalor $\lambda = 1$.
+
+El análisis de centralidad arrojó una desviación estándar muy baja ($\sigma \approx 0.00094$) sobre valores medios de $0.02$, confirmando que la señal estructural es altamente estable. Los productos perecederos transversales (como frutas y verduras frescas) obtuvieron los picos máximos de PageRank, sirviendo matemáticamente como nodos ``puente'' fundamentales de los 38 clusters de la cocina.
+
+% =========================================================================
+% SECCIÓN 10
+% =========================================================================
+\section{Protocolo de Evaluación Fuera de Línea y Resultados (Evaluation)}
+Para medir el rendimiento de los modelos predictivos de forma transparente y científica, se diseñó un riguroso protocolo de simulación basado en la tarea de completado de canastas enmascaradas (\textit{Masked Basket Completion}).
+
+\subsection{Protocolo de Enmascaramiento y Hold-Out}
+El conjunto global de sesiones se dividió de forma estricta en una partición de entrenamiento (80\%) y una partición de prueba o \textit{hold-out} (20\%) utilizando una semilla aleatoria fija \texttt{seed = 42} para garantizar la reproducibilidad exacta de las métricas. Para cada sesión del conjunto de prueba, se enmascaró de forma aleatoria el 20\% de los productos consumidos realmente por el usuario, retirándolos de la señal de entrada. El sistema de recomendación generó un ordenamiento jerárquico (\textit{Top-K} Ranking) utilizando únicamente la señal parcial remanente. Se evaluó la capacidad del modelo para volver a colocar los productos enmascarados en los primeros lugares del ranking.
+
+\subsection{Métricas de Rendimiento Evaluadas}
+\begin{itemize}
+    \item \textbf{Precisión en el Top-K ($P@K$):} Mide la proporción de artículos recomendados en el Top-K que corresponden genuinamente al conjunto de elementos enmascarados ($\mathcal{R}$): $P@K = \frac{|\mathcal{R} \cap \text{Top-K}|}{K}$.
+    \item \textbf{Precisión Media Promedio ($MAP@K$):} Evalúa la sensibilidad del recomendador ante la posición del ordenamiento, penalizando severamente a los modelos que colocan los aciertos verdaderos en las posiciones más bajas del ranking:
+    \begin{equation}
+    MAP@K = \frac{1}{|U|} \sum_{u=1}^{|U|} \left( \frac{1}{\min(|\mathcal{R}_u|, K)} \sum_{k=1}^K P@k \cdot \mathbb{I}(k \in \mathcal{R}_u) \right)
+    \end{equation}
+\end{itemize}
+
+\subsection{Tabla Consolidada de Resultados Experimentales}
+La re-ejecución final controlada del script \texttt{src/evaluation.py} congeló la tabla de métricas unificada del proyecto bajo los siguientes resultados oficiales de rendimiento:
+
+\begin{table}[h!]
+\centering
+\small
+\caption{Matriz consolidada de evaluación offline}
+\vspace{0.2cm}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Sistema Algorítmico Evaluativo} & \textbf{Precision@5} & \textbf{MAP@5} & \textbf{Cobertura (Coverage)} \\
+\midrule
+Popularity Baseline (Piso) & 0.0410 & 0.0480 & 22.00\% \\
+PageRank Centrality (Global) & 0.0435 & 0.0530 & 26.00\% \\
+Content-Based (TF-IDF) & 0.0380 & 0.0415 & 88.00\% \\
+Collaborative Filtering (iALS) & 0.0485 & 0.0522 & 92.00\% \\
+\textbf{Modelo Híbrido SKI (Producción)} & \textbf{0.0539} & \textbf{0.0574} & \textbf{100.00\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Análisis del Compromiso entre Precisión y Cobertura}
+Al analizar los resultados aislados, sistemas estáticos globales como \textit{Popularity} o \textit{PageRank} exhiben métricas de precisión agregada competitivas debido a que explotan los productos de alta rotación comunes a todos los hogares; no obstante, su cobertura es críticamente deficiente (solo recomiendan el 22\% y 26\% del catálogo disponible). El \textbf{Modelo Híbrido SKI final supera de forma simultánea a todos los modelos de la competencia}, alcanzando el \textbf{MAP@5 más alto (0.0574)} y garantizando un \textbf{100.00\% de cobertura del catálogo}. Esto valida cuantitativamente la efectividad de la arquitectura multiclave para resolver las ineficiencias de suministro individuales sin descuidar el control del desperdicio perecedero.
+
+% =========================================================================
+% SECCIÓN 11
+% =========================================================================
+\section{Pipeline y Reproducibilidad (Pipeline and Reproducibility)}
+La integridad y madurez de la ingeniería del proyecto SKI radican en la completa automatización y aislamiento de su pipeline de procesamiento. Se eliminó radicalmente la dependencia de estados de ejecución ocultos en cuadernillos de celdas mediante el desarrollo de un orquestador backend unificado programado en el archivo \texttt{run\_pipeline.py}.
+
+Este script central se encarga de instanciar secuencialmente cada uno de los submódulos, controlando el flujo lógico de dependencias de datos que viaja de la siguiente manera:
+\begin{enumerate}
+    \item \textbf{Capa de Ingesta y ETL:} Invoca secuencialmente a \texttt{extract\_patterns.py}, \texttt{simulation.py}, \texttt{ingestion.py} y \texttt{preprocessing.py} para estructurar la tabla de hechos en \texttt{inventory\_v1.csv}.
+    \item \textbf{Capa de Representación:} Lanza \texttt{features.py} y \texttt{reduction.py} para compilar la matriz densa de 30 componentes principales.
+    \item \textbf{Capa de Agrupamiento y Perfilado:} Ejecuta \texttt{clustering.py}, \texttt{clustering\_refinement.py} y el nuevo perfilador semántico \texttt{cluster\_profiling.py} para fijar los estilos de vida estables de los 38 clusters.
+    \item \textbf{Capa de Inferencia Estructural y Ensamble:} Orquesta de forma paralela \texttt{build\_R.py}, los recomendadores base, el script espectral \texttt{graph\_construction.py}, la analítica topológica \texttt{graph\_analytics.py} y el evaluador unificado \texttt{evaluation.py}.
+\end{enumerate}
+
+Asimismo, se ha incorporado una robusta suite de pruebas unitarias automatizadas dentro del directorio \texttt{tests/}. Utilizando el framework \texttt{pytest}, los scripts de prueba validan las dimensiones de las matrices (\textit{smoke tests}), la consistencia matemática de las métricas de precisión y PageRank, y la ausencia de valores nulos o infinitos en los tensores persistidos, blindando al sistema ante regresiones críticas de código antes del despliegue del frontend interactivo.
+
+% =========================================================================
+% SECCIÓN 12
+% =========================================================================
+\section{Plan de Operacionalización y Monitoreo (Operationalization and Monitoring)}
+El traspaso del prototipo analítico a un entorno de producción operativa se detalla exhaustivamente dentro del artefacto de diseño arquitectónico \texttt{reports/monitoring\_plan.md}. El plan establece una estrategia de despliegue y mantenimiento preventivo dividida en tres pilares fundamentales:
+
+\subsection{Estrategia de Despliegue Híbrido (Batch y Near-Real-Time)}
+Dada la complejidad computacional implícita en la descomposición espectral del Grafo y la factorización matricial ALS, el backend opera bajo un esquema de procesamiento por lotes (\textit{Batch Processing}) ejecutado con una periodicidad programada de forma semanal durante ventanas de baja demanda transaccional. Sin embargo, para mantener la interactividad en la experiencia del usuario, el frontend de la interfaz utiliza la proyección de un solo paso de Mínimos Cuadrados Parciales (\textit{Partial CF}). Esto permite recalcular el vector latente de sesión en tiempo real a partir de las pocas interacciones iniciales ingresadas en pantalla, garantizando tiempos de respuesta inferiores a los 200 milisegundos sin sobrecargar la infraestructura central.
+
+\subsection{Métricas de Monitoreo Analítico en Producción}
+El sistema de telemetría vigila continuamente la degradación de los modelos en producción midiendo tres variables críticas:
+\begin{itemize}
+    \item \textbf{Desviación de Datos (Data Drift):} Rastrea la distancia de Kullback-Leibler entre la distribución horaria de eventos base y las nuevas transacciones ingresadas por los hogares. Una desviación mayor a un umbral crítico activa una alerta de reentrenamiento inmediato.
+    \item \textbf{Cobertura Dinámica del Catálogo (Catalog Coverage Degradation):} Monitorea si las recomendaciones del Top-5 agregadas tienden a concentrarse en un subconjunto cerrado de productos populares, lo que indicaría una pérdida de efectividad de las señales personalizadas de contenido.
+    \item \textbf{Tasa de Caducidad del Inventario Vivo (Staleness Metrics):} Monitorea la consistencia de las fechas de expiración calculadas respecto a las respuestas de actualización de la API de la USDA.
+\end{itemize}
+
+% =========================================================================
+% SECCIÓN 13
+% =========================================================================
+\section{Limitaciones, Trabajo Futuro y Conclusiones Finales (Conclusions)}
+
+\subsection{Limitaciones del Sistema}
+A pesar del excelente rendimiento del Modelo Híbrido, el sistema de software actual presenta tres áreas críticas de limitación técnica:
+\begin{enumerate}
+    \item \textbf{Naturaleza Sintética de las Interacciones:} El dataset de eventos transaccionales se basa en simulaciones probabilísticas estocásticas paramétricas. Si bien mantiene fidelidad con las distribuciones reales de Instacart, carece de la volatilidad y los sesgos conductuales imprevistos propios de usuarios humanos reales.
+    \item \textbf{Topología Densa del Grafo Transaccional:} Debido al tamaño compacto del catálogo (50 productos) y al alto volumen de sesiones acumuladas, el grafo de co-ocurrencia converge en una red completamente conectada. Esto reduce la capacidad de discriminación estructural pura de la topología binaria, obligando a delegar toda la fuerza analítica a las magnitudes continuas de los pesos de las aristas.
+    \item \textbf{Discretización de Variables Nutricionales:} La transformación de los nutrientes continuos de la USDA en tokens de texto ordinales dentro del espacio semántico de TF-IDF introduce un supuesto falso de ortogonalidad simétrica, tratando de igual manera la distancia entre un nivel bajo y medio que entre un nivel bajo y alto.
+\end{enumerate}
+
+\subsection{Trabajo Futuro y Escalabilidad}
+Para evolucionar el prototipo académico hacia un estándar industrial a gran escala, se proponen las siguientes extensiones de ingeniería de datos:
+\begin{itemize}
+    \item \textbf{Poda Espectral del Grafo (Edge Thresholding):} Implementar un filtro de umbral estadístico que elimine los enlaces correspondientes al percentil inferior al 75\% de pesos, generando una topología no trivial apta para la detección de comunidades de co-compra mediante el algoritmo de Louvain.
+    \item \textbf{Modelos de Recomendación de Dos Torres (Two-Tower Neural Networks):} Migrar el ensamble lineal hacia una arquitectura de redes neuronales profundas que procese de forma independiente la torre del perfil del hogar y la torre de las características del ítem en embeddings continuos unificados.
+    \item \textbf{Migración a Polars y Orquestación Distribuida:} Reemplazar el procesamiento en memoria de Pandas por operaciones perezosas distribuibles mediante la librería Polars para soportar catálogos industriales con millones de productos concurrentes.
+\end{itemize}
+
+\subsection{Conclusiones Finales}
+El proyecto \textbf{Smart Kitchen Intelligence (SKI)} demuestra con éxito la viabilidad técnica de unificar cinco capas analíticas complejas de Big Data en una única plataforma integrada de software orientada a la mitigación del desperdicio doméstico. Mediante la articulación rigurosa de transformaciones cíclicas temporales, la segmentación densa por densidad de DBSCAN, la factorización de preferencias implícitas por ALS y el análisis espectral de centralidad por PageRank, se logró desarrollar un motor híbrido que no solo maximiza la precisión métrica en hold-out (MAP@5 = 0.0574), sino que garantiza una cobertura absoluta del catálogo de productos. El despliegue de la aplicación interactiva final con Streamlit consolida esta complejidad matemática invisible bajo una experiencia de usuario minimalista y corporativa, demostrando el verdadero valor de la analítica avanzada aplicada a la resolución de problemas cotidianos de sostenibilidad alimentaria.
+
+\end{document}

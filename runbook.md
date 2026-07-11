@@ -196,7 +196,7 @@ python src/evaluation.py
 *   **Entradas:** todos los artefactos previos del recomendador.
 *   **Salidas:** `evaluation_table.csv`, `evaluation_summary.json`, `error_analysis.csv`
 
-> **Resultado esperado:** popularity gana precision@5 (0.0508) pero solo cubre 22% del catálogo; hybrid logra coverage 100% y MAP@5 = 0.0539.
+> **Resultado esperado:** popularity gana precision@5 (0.0508) y tiene MAP@5 = 0.0539, pero solo cubre 22% del catálogo; hybrid logra coverage 100%, precision@5 = 0.0494 y MAP@5 = 0.0574.
 
 ### Paso 16: Figuras del informe
 
@@ -276,6 +276,19 @@ streamlit run src/demo_app.py
 ```
 *   **Entradas:** todos los artefactos de `data/features/` y `data/recommender/` (solo lectura, sin escritura de artefactos).
 *   Permite elegir un household, ver su cluster de comportamiento dominante, sus top-5 recomendaciones híbridas v1 y el grafo de co-ocurrencia con esas 5 recomendaciones resaltadas.
+
+### Paso 24 (obligatorio antes de la defensa): Ensayo en seco de la demo final
+
+La demo de Semana 14 es **interactiva en vivo** (no un video pregrabado), con **7 minutos** de exposición, y el profesor aplica **-50 puntos si algo se rompe en vivo**. `src/demo_app.py` depende de ~7 artefactos persistidos (`cluster_labels_refined.npy`, `feature_names.json`, `item_sim_content.npy`/`tfidf_items.npz`, `als_Y.npy`, `hybrid_meta.json`, `kitchen_graph.gexf`, `graph_metrics.json`). Antes de cada ensayo o de la defensa real, regenerar todo desde cero y solo entonces lanzar la demo:
+
+```bash
+python run_pipeline.py --skip-ingestion   # corre Hito 1-6 completo desde data/raw/ ya versionado
+                                           # (evita depender de credenciales Kaggle/USDA el día de la defensa)
+python -m pytest                          # 35 pruebas de humo: confirma shapes/rangos antes de exponer
+streamlit run src/demo_app.py             # solo si run_pipeline.py y pytest terminaron sin errores
+```
+
+*   **Criterio de finalización:** `run_pipeline.py` termina sin abortar en ninguna etapa, `pytest` reporta `35 passed`, y la demo carga sin excepciones para al menos 3 households distintos elegidos al azar.
 
 ### Resumen de artefactos generados por hito
 

@@ -1,15 +1,16 @@
 # Smart Kitchen Intelligence (SKI)
 
-**Estado Actual:** Hito 5 (Semana 12) y extensión de Semana 13 Completados. Pipeline completo implementado y reproducible: ingesta y simulación de datos → ingeniería de características distribuidas → reducción de dimensionalidad (PCA/t-SNE) → clustering y segmentación (DBSCAN) → motor de recomendación híbrido multicapa → análisis estructural de grafos de co-ocurrencia con validación PageRank → ablación de integración de PageRank al híbrido (resultado empírico: no aporta valor de re-ranking a nivel de canasta; ver `reports/graph_analytics_report.md` §5).
+**Estado Actual:** Hito 6 (Semana 14 — Entrega Final Integrada) Completado. Pipeline completo implementado y reproducible: ingesta y simulación de datos → ingeniería de características distribuidas → reducción de dimensionalidad (PCA/t-SNE) → clustering y segmentación (DBSCAN) con perfilado de clusters → motor de recomendación híbrido multicapa → análisis estructural de grafos de co-ocurrencia con validación PageRank → ablación de integración de PageRank al híbrido (resultado empírico: no aporta valor de re-ranking a nivel de canasta; ver `reports/graph_analytics_report.md` §5) → demo interactivo, plan de monitoreo, limitaciones consolidadas y reporte técnico final de 13 secciones.
 
 | Hito | Semana | Estado | Métricas Operativas / Entregables |
 | :--- | :--- | :--- | :--- |
 | Pipeline de datos (ingesta, ETL, esquema) | 3 | ✅ Completado | Integridad relacional del 100% mediante `stock_id`. |
 | Feature engineering + Reducción dimensional (PCA/t-SNE) | 5 | ✅ Completado | Matriz densa 72k×61. PCA retiene 90% varianza en 30 componentes. |
-| Clustering y segmentación de comportamiento | 7 | ✅ Completado | DBSCAN ($eps=2.7, min\_samples=15$). Silhouette = 0.6549. Ruido < 0.28%. |
+| Clustering y segmentación de comportamiento | 7 | ✅ Completado | DBSCAN ($eps=2.7, min\_samples=15$). Silhouette = 0.6549. Ruido < 0.28%. Perfiles por cluster en `reports/cluster_profiles.md`. |
 | Recomendador Híbrido (Contenido + CF + Expiry) | 11 | ✅ Completado | **Catalog Coverage = 100%**, MAP@5 = 0.0574, Hybrid P@5 = 0.0494. |
 | Análisis de grafos de co-ocurrencia transaccional | 12 | ✅ Completado | Modelado de red no dirigida. Evaluación de centralidad PageRank integrada. |
 | Motor de recomendación híbrido extendido (PageRank) | 13 | ✅ Completado | Ablación 4D evaluó $w_G$; óptimo empírico $w_G=0.00$. Híbrido v1 (P@5=0.0494, MAP@5=0.0574) supera a v2 con grafo (P@5=0.0479, MAP@5=0.0560). Ver `reports/graph_analytics_report.md` §5. |
+| Entrega Final Integrada (demo, monitoreo, limitaciones, informe final) | 14 | ✅ Completado | Demo interactivo Streamlit (`src/demo_app.py`), `reports/monitoring_plan.md`, `reports/limitations_and_future_work.md`, `reports/final_report.md` (13 secciones), orquestador de un comando (`run_pipeline.py`) y 35 pruebas de humo (`tests/`, ejecutar con `pytest`). |
 
 ## 1. Descripción del Proyecto
 
@@ -57,6 +58,16 @@ python src/graph_construction.py      # Transforma sesiones de reabastecimiento 
 python src/graph_analytics.py         # Extrae métricas estructurales globales y centralidad PageRank
 # (Nota: ejecutar nuevamente `python src/evaluation.py` para comparar el PageRank vs. el Recomendador Híbrido)
 
+# 8. Perfilado de clusters, integración de PageRank al híbrido y demo final (Hito 6 — Semanas 13-14)
+python src/cluster_profiling.py       # Perfiles por cluster + failure analysis del ruido DBSCAN
+python src/recommender_hybrid.py      # Re-ablación 4D (w_C, w_F, w_E, w_G) -> hybrid_v2_graph
+python src/evaluation.py              # Re-evalúa los 6 sistemas, incluyendo hybrid_v2_graph
+streamlit run src/demo_app.py         # Demo interactivo: household -> cluster -> recomendación -> grafo
+
+# 9. (Alternativa) Correr todo el pipeline de un solo comando
+python run_pipeline.py --skip-ingestion   # Hito 1-6 completo, usando data/raw/ ya versionado
+python -m pytest                          # 35 pruebas de humo sobre shapes/rangos de artefactos
+
 ## 3. Arquitectura y Capas del Sistema
 
 El proyecto está estructurado en capas interdependientes y completamente desacopladas que permiten un desarrollo modular, mantenible y escalable, aplicando rigurosamente los estándares de ingeniería de datos modernos para Big Data:
@@ -87,6 +98,14 @@ El proyecto está estructurado en capas interdependientes y completamente desaco
     * `src/graph_construction.py`: Induce matemáticamente una red compleja no dirigida basada en las frecuencias de co-ocurrencia de productos dentro de las sesiones de reabastecimiento.
     * `src/graph_analytics.py`: Aplica teoría de redes espaciales para extraer métricas estructurales (componentes conectadas, grados) y métricas de centralidad algorítmica (PageRank), aislando sistemáticamente los "productos puente" esenciales que unifican clústeres de consumo dispares.
 
+* **Capa de Cierre e Integración Final (Hito 6 — Semanas 13-14):**
+    * `src/cluster_profiling.py`: Calcula medias/modas por cluster sobre `feature_matrix.npy` y documenta el failure analysis del ruido DBSCAN en `reports/cluster_profiles.md`, dando evidencia trazable a los perfiles antes solo ilustrativos.
+    * `src/recommender_hybrid.py` (extendido): añade un cuarto componente $w_G \cdot \text{PageRank}$ al ensamble y ejecuta un barrido de ablación sobre el 4-simplex de pesos, produciendo el sistema `hybrid_v2_graph` evaluado en `evaluation.py`.
+    * `src/demo_app.py`: aplicación Streamlit interactiva de cierre — selecciona un household, muestra su cluster de comportamiento, sus top-5 recomendaciones híbridas y el grafo de co-ocurrencia con esas recomendaciones resaltadas (solo lectura, no escribe artefactos).
+    * `run_pipeline.py`: orquestador de un solo comando que reemplaza los 20+ pasos manuales del runbook, con modos `--stage`/`--from`/`--skip-ingestion` para ensayos de demo sin credenciales.
+    * `tests/`: 35 pruebas de humo (`pytest`) que verifican shapes, rangos y consistencia de los artefactos generados por cada etapa.
+    * `reports/monitoring_plan.md`, `reports/limitations_and_future_work.md`, `reports/final_report.md`: plan de operacionalización, limitaciones consolidadas e informe técnico final de 13 secciones exigidos en la Semana 14.
+
 ## 4. Estructura del Repositorio
 
 La disposición jerárquica de los componentes garantiza la reproducibilidad científica y la separación de conceptos demandada en ingeniería de software:
@@ -109,12 +128,13 @@ La disposición jerárquica de los componentes garantiza la reproducibilidad cie
 │       ├── R_restock_bin.npz       # Matriz binaria dispersa CSR de sesiones de reabastecimiento
 │       ├── R_restock_tfidf_R.npz   # Matriz normalizada con TF-IDF para penalizar ítems ubicuos
 │       ├── als_X.npy / als_Y.npy   # Factores latentes de sesiones e ítems calculados por ALS
-│       ├── evaluation_table.csv    # Cuadro comparativo oficial de métricas globales del Hito 4 y 5
-│       ├── hybrid_ablation.csv     # Registro numérico completo del experimento de rejilla de pesos
+│       ├── evaluation_table.csv    # Cuadro comparativo oficial: 6 sistemas (popularity, pagerank, content, cf, hybrid, hybrid_v2_graph)
+│       ├── hybrid_ablation.csv     # Registro numérico completo de la rejilla de pesos (3D y 4D con PageRank)
+│       ├── hybrid_meta.json        # Pesos óptimos seleccionados por ablación ($w_C,w_F,w_E,w_G$)
 │       ├── error_analysis.csv      # Segmentación de auditoría cualitativa de los 5 Strong y Failure Cases
 │       ├── evaluation_summary.json # Summary con metadatos nativos del protocolo Cloze Task Style
-│       ├── kitchen_graph.gexf      # (NUEVO) Grafo no dirigido de co-ocurrencia de productos
-│       └── graph_metrics.json      # (NUEVO) Métricas de red y diccionario de centralidad PageRank
+│       ├── kitchen_graph.gexf      # Grafo no dirigido de co-ocurrencia de productos
+│       └── graph_metrics.json      # Métricas de red y diccionario de centralidad PageRank
 ├── src/                        # Scripts Python modulares y ejecutables (Pipeline secuencial)
 │   ├── extract_patterns.py     # Extractor y procesador de distribuciones de Instacart
 │   ├── simulation.py           # Simulador estocástico de flujos transaccionales domésticos
@@ -129,15 +149,24 @@ La disposición jerárquica de los componentes garantiza la reproducibilidad cie
 │   ├── recommender_cf.py       # Capa 2: Factorización por mínimos cuadrados ALS e iteración lambda
 │   ├── recommender_hybrid.py   # Capa 3: Ensamble lineal mixed, re-ranking expiral y rejilla de ablación
 │   ├── evaluation.py           # Validador interactivo de métricas ciegos bajo el paradigma Cloze Task
-│   ├── graph_construction.py   # (NUEVO) Generador topológico del grafo desde logs de co-ocurrencia
-│   └── graph_analytics.py      # (NUEVO) Motor de cálculo de componentes conexas y PageRank
-├── notebooks/                  # Jupyter Notebooks dedicados exclusivamente a EDA y prototipado rápido
+│   ├── graph_construction.py   # Generador topológico del grafo desde logs de co-ocurrencia
+│   ├── graph_analytics.py      # Motor de cálculo de componentes conexas y PageRank
+│   ├── cluster_profiling.py    # (NUEVO) Perfiles por cluster + failure analysis del ruido DBSCAN
+│   └── demo_app.py             # (NUEVO) Demo final interactivo Streamlit (household -> cluster -> recomendación -> grafo)
+├── tests/                       # (NUEVO) 35 pruebas de humo pytest (shapes/rangos de artefactos por etapa)
+├── run_pipeline.py               # (NUEVO) Orquestador de un solo comando para el pipeline completo (Hito 1-6)
+├── pytest.ini                    # (NUEVO) Configuración de pytest (testpaths=tests)
+├── notebooks/                  # Jupyter Notebooks de EDA, experimentos de recomendación y demo de presentación
 ├── reports/
 │   ├── figures/                # Visualizaciones y curvas de aprendizaje exportadas automáticamente
 │   │   ├── hito4/                  # Plots del hito: sweeps de lambda, ablación y distribuciones IDF
 │   │   └── *.png                   # Scatter plots de t-SNE, scree plots de PCA y siluetas
-│   ├── graph_analytics_report.md # (NUEVO) Justificación técnica e interpretación de redes (Hito 5)
+│   ├── graph_analytics_report.md # Justificación técnica e interpretación de redes (Hito 5) + ablación PageRank-híbrido (Hito 6)
+│   ├── cluster_profiles.md       # (NUEVO) Perfiles de los 38 clusters + failure analysis del ruido
+│   ├── monitoring_plan.md        # (NUEVO) Plan de monitoreo/operacionalización (Semana 14)
+│   ├── limitations_and_future_work.md # (NUEVO) Limitaciones consolidadas y trabajo futuro (Semana 14)
+│   ├── final_report.md           # (NUEVO) Informe técnico final de 13 secciones (Semana 14)
 │   └── *.md                    # Reportes técnicos e informes descriptivos indexados por hitos
-├── informe_hito4.tex           # Documento de defensa técnico-científica oficial en formato LaTeX
+├── Informes/                    # Informes LaTeX/PDF/PPTX de defensa formal por hito
 ├── runbook.md                  # Manual operativo con secuencias explícitas de comandos de consola
 └── requirements.txt            # Dependencias del proyecto congeladas con versiones estrictas

@@ -56,6 +56,12 @@ regeneran de cero ejecutando los scripts en `src/` listados en
 | `cold_start_product.csv`         | precision@5 por producto cold (content)  |
 | `cold_start_summary.json`        | Estrategia ganadora + justificación      |
 
+**Nota de terminología (por qué `partial_cf` no contradice "cold-start"):** `src/cold_start.py` evalúa dos escenarios distintos, no uno solo:
+- **Producto cold (cero historial):** un producto sin ninguna sesión previa en `R`. Aquí es literalmente imposible usar CF (no hay filas/columnas de las que derivar similitud), así que solo `content_only` (TF-IDF) es viable — ver `evaluate_product_cold`.
+- **Sesión/hogar cold (historial parcial):** una sesión nueva con 1-2 productos ya conocidos (`seed_items_per_session`), no cero. `partial_cf` es válido en este caso porque opera por similitud ítem-ítem sobre esos 1-2 productos conocidos (no requiere un factor latente entrenado para *esa* sesión) — es "cold" a nivel de sesión/usuario, no a nivel de producto. Es un caso de **partial/warm-start**, de ahí el nombre `partial_cf`, y no un cold-start puro con cero señal.
+
+Esta distinción responde directamente a la objeción planteada por el profesor en la defensa de Hito 4 (Semana 11): *"si es cold start problem, you don't have any history... you cannot use collaborative filtering"* — cierta para producto cold, no aplicable a sesión cold con seeds conocidos.
+
 ## Recomendador híbrido
 
 | Archivo                  | Contenido                                       |

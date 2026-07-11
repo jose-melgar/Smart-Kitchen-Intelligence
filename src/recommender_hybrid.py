@@ -68,7 +68,7 @@ def score_expiry(household_id: int, df: pd.DataFrame,
         net=("sign", "sum"),
         expiry=("expiry_date", "first"),
     ).reset_index()
-    alive = stock_state[stock_state["net"] > 0]
+    alive = stock_state[stock_state["net"] > 0].copy()
     if alive.empty:
         return np.zeros(len(catalog))
 

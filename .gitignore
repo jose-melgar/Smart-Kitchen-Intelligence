@@ -40,3 +40,6 @@ Thumbs.db
 # Temporales del flujo de trabajo
 *.tmp
 lu*.tmp
+
+# Transcripciones/notas privadas de clase (no son entregables del proyecto)
+resumenes/

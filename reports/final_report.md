@@ -323,8 +323,8 @@ Ver Sección 9.2 — es la misma decisión de diseño revisada desde el ángulo 
 ### 12.4 Otras limitaciones
 
 1. **Evaluación offline únicamente** — proxy de hold-out aleatorio, no A/B test con usuarios reales; las métricas absolutas (precision@5≈0.05) deben leerse comparativamente entre sistemas.
-2. **Sin pruebas automatizadas** — no existe `tests/` con smoke tests sobre formas/rangos de artefactos.
-3. **Sin orquestador único de pipeline** — reproducción end-to-end requiere ejecutar manualmente >20 scripts en el orden de `runbook.md`.
+2. **Pruebas automatizadas limitadas a smoke tests** — `tests/` (35 pruebas `pytest`) verifica shapes/rangos de artefactos por etapa, pero no valida corrección numérica end-to-end ni corre en CI.
+3. **Orquestador de pipeline sin paralelización** — `run_pipeline.py` reemplaza los >20 comandos manuales de `runbook.md` por un solo punto de entrada, pero ejecuta las etapas secuencialmente sin paralelizar ni cachear resultados intermedios.
 4. **Sin configuración externalizada** — rutas e hiperparámetros hardcodeados por script.
 5. **Equipo de 2 personas** frente al tamaño recomendado de 3-5 (el brief permite roles combinados).
 6. **Staleness y drift no monitoreados en el pipeline actual** — ver Sección 12.5.

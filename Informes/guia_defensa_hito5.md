@@ -283,6 +283,12 @@ Cada una tiene un caso de uso claro. En la presentación: TF-IDF de R para el CF
 - **Producto nuevo:** se le asigna el centroide TF-IDF de su categoría hasta tener al menos 3 sesiones de evidencia.
 - **PageRank no aplica a cold-start** porque requiere co-ocurrencias observadas — explícitamente lo dejamos fuera de ese caso de uso.
 
+#### "Si es cold-start, ¿cómo generas recomendaciones con collaborative filtering?" (pregunta que ya nos hizo el profesor en Semana 11 y quedó sin responder con claridad)
+Distinguimos dos escenarios, no uno solo (`src/cold_start.py`):
+- **Producto cold (cero historial):** correcto, ahí es imposible usar CF — no hay fila/columna en `R` de la que derivar similitud. Usamos solo `content_only` (TF-IDF).
+- **Sesión/hogar cold (historial parcial, 1-2 productos ya conocidos):** aquí sí se puede usar `partial_cf`, porque no depende de un factor latente entrenado para esa sesión (eso sí sería imposible) — depende de la similitud ítem-ítem **precomputada** entre los 1-2 productos ya conocidos y el resto del catálogo. Es "cold" a nivel de sesión, no un cold-start absoluto de cero señal — de ahí el nombre `partial_cf` en vez de `cf` a secas.
+- Respuesta corta si preguntan de nuevo: *"Depende de si el cold-start es de producto o de sesión. Con cero historial, solo content y popularidad. Con 1-2 productos ya conocidos, sí podemos usar similitud ítem-ítem CF sobre esos productos — no es collaborative filtering completo con factores entrenados para esa sesión, es collaborative filtering parcial."*
+
 #### ¿Cómo vas a evaluar el sistema?
 - **Offline (este informe):** Precision/Recall/MAP/Coverage @5 sobre hold-out 20% con seed 42, 968 sesiones.
 - **Métrica de éxito real (sistema de producción):** **MAP@5 + Coverage** simultáneamente. Un Precision alto con Coverage 22% es un sistema inútil (siempre recomienda lo mismo). Por eso el Hybrid es el sistema de producción aunque PageRank lo supere en Precision cruda.
